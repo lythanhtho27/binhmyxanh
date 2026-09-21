@@ -1,0 +1,14 @@
+<div class="container" style="padding: 60px 20px; text-align: center;">
+  <div style="max-width: 500px; margin: 0 auto; background: white; padding: 40px; border-radius: var(--radius-lg); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
+    <div style="font-size: 3.5rem; margin-bottom: 16px;">🌱</div>
+    <h1 style="font-size: 1.6rem; font-weight: 800; color: #c62828; margin-bottom: 10px;">
+      <%= typeof title !== 'undefined' ? title : 'Đã có lỗi xảy ra' %>
+    </h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 24px;">
+      <%= typeof message !== 'undefined' ? message : 'Trang bạn yêu cầu không tồn tại hoặc đã xảy ra sự cố.' %>
+    </p>
+    <a href="/" class="btn-primary" style="padding: 10px 24px;">
+      <i class="fa-solid fa-house"></i> Về trang chủ Bình Mỹ Xanh
+    </a>
+  </div>
+</div>

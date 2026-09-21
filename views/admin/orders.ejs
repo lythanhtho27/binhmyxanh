@@ -1,0 +1,113 @@
+<div class="admin-card">
+  <div class="admin-card-header">
+    <div>
+      <h2 class="admin-card-title"><i class="fa-solid fa-receipt"></i> Quản Lý Đơn Hàng (<%= totalOrders %>)</h2>
+    </div>
+  </div>
+
+  <% if (message) { %>
+    <div class="badge <%= message.type === 'success' ? 'badge-completed' : 'badge-cancelled' %>" style="display: block; padding: 10px 16px; margin-bottom: 20px; font-size: 0.9rem;">
+      <%= message.text %>
+    </div>
+  <% } %>
+
+  <!-- Lọc theo trạng thái -->
+  <div style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;">
+    <a href="/admin/orders?status=all<%= searchQuery ? '&search=' + searchQuery : '' %>" 
+       class="btn-sm <%= currentStatus === 'all' ? 'btn-primary-sm' : 'btn-outline-sm' %>">Tất cả</a>
+    <a href="/admin/orders?status=pending<%= searchQuery ? '&search=' + searchQuery : '' %>" 
+       class="btn-sm <%= currentStatus === 'pending' ? 'btn-primary-sm' : 'btn-outline-sm' %>">Chờ xác nhận</a>
+    <a href="/admin/orders?status=processing<%= searchQuery ? '&search=' + searchQuery : '' %>" 
+       class="btn-sm <%= currentStatus === 'processing' ? 'btn-primary-sm' : 'btn-outline-sm' %>">Đang xử lý</a>
+    <a href="/admin/orders?status=shipping<%= searchQuery ? '&search=' + searchQuery : '' %>" 
+       class="btn-sm <%= currentStatus === 'shipping' ? 'btn-primary-sm' : 'btn-outline-sm' %>">Đang giao</a>
+    <a href="/admin/orders?status=completed<%= searchQuery ? '&search=' + searchQuery : '' %>" 
+       class="btn-sm <%= currentStatus === 'completed' ? 'btn-primary-sm' : 'btn-outline-sm' %>">Hoàn thành</a>
+    <a href="/admin/orders?status=cancelled<%= searchQuery ? '&search=' + searchQuery : '' %>" 
+       class="btn-sm <%= currentStatus === 'cancelled' ? 'btn-primary-sm' : 'btn-outline-sm' %>">Đã hủy</a>
+  </div>
+
+  <!-- Tìm kiếm -->
+  <div style="margin-bottom: 20px;">
+    <form action="/admin/orders" method="GET" style="display: flex; gap: 10px; max-width: 420px;">
+      <input type="hidden" name="status" value="<%= currentStatus %>">
+      <input type="text" name="search" placeholder="Mã đơn hàng, tên hoặc SĐT..." value="<%= searchQuery %>" class="form-control">
+      <button type="submit" class="btn-sm btn-primary-sm">Tìm kiếm</button>
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Mã đơn</th>
+          <th>Khách hàng</th>
+          <th>Số điện thoại</th>
+          <th>Tổng tiền</th>
+          <th>Phương thức</th>
+          <th>Thanh toán</th>
+          <th>Trạng thái đơn</th>
+          <th>Thời gian</th>
+          <th style="text-align: right;">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (orders.length === 0) { %>
+          <tr>
+            <td colspan="9" style="text-align: center; color: var(--admin-muted); padding: 30px;">Không tìm thấy đơn hàng nào.</td>
+          </tr>
+        <% } else { %>
+          <% orders.forEach(ord => { %>
+            <tr>
+              <td style="font-weight: 700; color: var(--admin-primary);">
+                <a href="/admin/orders/<%= ord.id %>"><%= ord.order_code %></a>
+              </td>
+              <td><strong><%= ord.customer_name %></strong></td>
+              <td><%= ord.customer_phone %></td>
+              <td style="font-weight: 700;"><%= Number(ord.total_amount).toLocaleString('vi-VN') %>đ</td>
+              <td><%= ord.payment_method === 'banking' ? 'Chuyển khoản QR' : 'COD' %></td>
+              <td>
+                <span class="badge" style="<%= ord.payment_status === 'paid' ? 'background:#e8f5e9; color:#2e7d32;' : 'background:#fff3e0; color:#e65100;' %>">
+                  <%= ord.payment_status === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán' %>
+                </span>
+              </td>
+              <td>
+                <% if (ord.status === 'pending') { %>
+                  <span class="badge badge-pending">Chờ xác nhận</span>
+                <% } else if (ord.status === 'processing') { %>
+                  <span class="badge" style="background:#e0f2fe; color:#0369a1;">Đang xử lý</span>
+                <% } else if (ord.status === 'shipping') { %>
+                  <span class="badge badge-shipping">Đang giao</span>
+                <% } else if (ord.status === 'completed') { %>
+                  <span class="badge badge-completed">Hoàn thành</span>
+                <% } else { %>
+                  <span class="badge badge-cancelled">Đã hủy</span>
+                <% } %>
+              </td>
+              <td style="color: var(--admin-muted); font-size: 0.85rem;">
+                <%= new Date(ord.created_at).toLocaleDateString('vi-VN') %>
+              </td>
+              <td style="text-align: right;">
+                <a href="/admin/orders/<%= ord.id %>" class="btn-sm btn-outline-sm">
+                  <i class="fa-solid fa-eye"></i> Xem chi tiết
+                </a>
+              </td>
+            </tr>
+          <% }) %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Phân trang -->
+  <% if (totalPages > 1) { %>
+    <div style="display: flex; justify-content: center; gap: 8px; margin-top: 24px;">
+      <% for (let i = 1; i <= totalPages; i++) { %>
+        <a href="/admin/orders?page=<%= i %>&status=<%= currentStatus %><%= searchQuery ? '&search=' + searchQuery : '' %>" 
+           class="btn-sm <%= currentPage === i ? 'btn-primary-sm' : 'btn-outline-sm' %>">
+          <%= i %>
+        </a>
+      <% } %>
+    </div>
+  <% } %>
+</div>

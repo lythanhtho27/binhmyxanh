@@ -1,0 +1,148 @@
+<div class="container" style="padding-top: 24px; padding-bottom: 50px;">
+  <div class="breadcrumb">
+    <a href="/"><i class="fa-solid fa-house"></i> Trang chủ</a>
+    <span>/</span>
+    <a href="/cart">Giỏ hàng</a>
+    <span>/</span>
+    <span>Thanh toán</span>
+  </div>
+
+  <h1 style="font-size: 1.7rem; font-weight: 800; color: var(--text-main); margin-bottom: 24px;">
+    Thông Tin Đặt Hàng & Thanh Toán
+  </h1>
+
+  <form action="/cart/checkout" method="POST">
+    <div class="checkout-layout">
+      <!-- Cột trái: Thông tin nhận hàng & Phương thức thanh toán -->
+      <div>
+        <div class="checkout-card" style="margin-bottom: 24px;">
+          <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-truck-ramp-box"></i> 1. Địa chỉ giao nông sản
+          </h2>
+
+          <div class="form-group">
+            <label for="customer_name">Họ và tên người nhận *</label>
+            <input type="text" id="customer_name" name="customer_name" class="form-control" required 
+                   placeholder="Ví dụ: Nguyễn Văn An" value="<%= currentUser ? currentUser.full_name : '' %>">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+              <label for="customer_phone">Số điện thoại nhận hàng *</label>
+              <input type="tel" id="customer_phone" name="customer_phone" class="form-control" required 
+                     placeholder="Ví dụ: 0912345678" value="<%= currentUser && currentUser.phone ? currentUser.phone : '' %>">
+            </div>
+            <div class="form-group">
+              <label for="customer_email">Địa chỉ Email (để nhận hóa đơn)</label>
+              <input type="email" id="customer_email" name="customer_email" class="form-control" 
+                     placeholder="email@example.com" value="<%= currentUser ? currentUser.email : '' %>">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="shipping_address">Địa chỉ chi tiết (Số nhà, Đường, Phường/Xã, Quận/Huyện, Tỉnh/TP) *</label>
+            <input type="text" id="shipping_address" name="shipping_address" class="form-control" required 
+                   placeholder="Số nhà, tên đường, khu vực nhận..." value="<%= currentUser && currentUser.address ? currentUser.address : '' %>">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="note">Ghi chú cho tài xế giao hàng</label>
+            <textarea id="note" name="note" class="form-control" rows="2" placeholder="Ví dụ: Giao giờ hành chính, gọi trước khi đến..."></textarea>
+          </div>
+        </div>
+
+        <div class="checkout-card">
+          <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-credit-card"></i> 2. Phương thức thanh toán
+          </h2>
+
+          <div class="payment-options">
+            <label class="payment-card active">
+              <input type="radio" name="payment_method" value="cod" checked style="accent-color: var(--primary);">
+              <div style="font-size: 1.5rem; color: var(--primary);"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+              <div>
+                <div style="font-weight: 700;">Thanh toán khi nhận hàng (COD)</div>
+                <div style="font-size: 0.82rem; color: var(--text-muted);">Kiểm tra nông sản tươi ngon rồi mới thanh toán tiền mặt</div>
+              </div>
+            </label>
+
+            <label class="payment-card">
+              <input type="radio" name="payment_method" value="banking" style="accent-color: var(--primary);">
+              <div style="font-size: 1.5rem; color: var(--primary);"><i class="fa-solid fa-qrcode"></i></div>
+              <div>
+                <div style="font-weight: 700;">Chuyển khoản Ngân hàng (Mã VietQR tự động)</div>
+                <div style="font-size: 0.82rem; color: var(--text-muted);">Quét mã QR qua ứng dụng ngân hàng hoặc ví điện tử</div>
+              </div>
+            </label>
+          </div>
+
+          <!-- Thông tin chuyển khoản hiển thị khi chọn QR -->
+          <div id="banking-info-box" style="display: none; background: var(--primary-soft); border: 1px dashed var(--primary); border-radius: var(--radius-sm); padding: 16px; margin-top: 16px;">
+            <div style="font-weight: 700; color: var(--primary); margin-bottom: 6px;">
+              <i class="fa-solid fa-building-columns"></i> Thông tin tài khoản nhận:
+            </div>
+            <div style="font-size: 0.88rem; line-height: 1.6;">
+              Ngân hàng: <strong>MB Bank (Ngân hàng Quân Đội)</strong><br>
+              Số tài khoản: <strong>090123456789</strong><br>
+              Chủ tài khoản: <strong>CONG TY BINH MY XANH</strong><br>
+              <em style="color: var(--text-muted);">(Hệ thống sẽ tạo mã VietQR kèm chính xác số tiền sau khi bạn bấm Hoàn tất)</em>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cột phải: Xem lại đơn hàng -->
+      <aside>
+        <div class="checkout-card" style="position: sticky; top: 90px;">
+          <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+            Đơn hàng của bạn (<%= cart.length %> sản phẩm)
+          </h3>
+
+          <div style="max-height: 280px; overflow-y: auto; margin-bottom: 18px; padding-right: 6px;">
+            <% cart.forEach(item => { %>
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">
+                <img src="<%= item.product_image %>" alt="<%= item.product_name %>" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
+                <div style="flex: 1;">
+                  <div style="font-weight: 600; font-size: 0.88rem;"><%= item.product_name %></div>
+                  <div style="font-size: 0.78rem; color: var(--text-muted);"><%= Number(item.price).toLocaleString('vi-VN') %>đ × <%= item.quantity %> <%= item.unit %></div>
+                </div>
+                <div style="font-weight: 700; font-size: 0.92rem; color: var(--primary);">
+                  <%= Number(item.price * item.quantity).toLocaleString('vi-VN') %>đ
+                </div>
+              </div>
+            <% }) %>
+          </div>
+
+          <div class="summary-row">
+            <span style="color: var(--text-muted);">Tạm tính:</span>
+            <span style="font-weight: 700;"><%= Number(subtotal).toLocaleString('vi-VN') %>đ</span>
+          </div>
+
+          <div class="summary-row">
+            <span style="color: var(--text-muted);">Phí vận chuyển:</span>
+            <span>
+              <% if (shippingFee === 0) { %>
+                <strong style="color: var(--primary);">Miễn phí</strong>
+              <% } else { %>
+                <%= Number(shippingFee).toLocaleString('vi-VN') %>đ
+              <% } %>
+            </span>
+          </div>
+
+          <div class="summary-row summary-total">
+            <span>Tổng thanh toán:</span>
+            <span><%= Number(total).toLocaleString('vi-VN') %>đ</span>
+          </div>
+
+          <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 24px; padding: 14px; font-size: 1.05rem;">
+            <i class="fa-solid fa-lock"></i> Xác nhận đặt hàng
+          </button>
+
+          <div style="text-align: center; margin-top: 14px; font-size: 0.8rem; color: var(--text-light);">
+            <i class="fa-solid fa-shield-halved"></i> Thông tin thanh toán được bảo mật an toàn 100%
+          </div>
+        </div>
+      </aside>
+    </div>
+  </form>
+</div>

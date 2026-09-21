@@ -1,0 +1,52 @@
+<aside class="admin-sidebar" id="admin-sidebar">
+  <div class="admin-brand">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 1.6rem;">🌿</span>
+      <div>
+        <div>Bình Mỹ Xanh</div>
+        <div style="font-size: 0.75rem; color: #a5d6a7; font-weight: normal;">Hệ Thống Quản Trị</div>
+      </div>
+    </div>
+    <button type="button" class="admin-sidebar-close" id="admin-sidebar-close-btn" aria-label="Đóng Menu">&times;</button>
+  </div>
+
+  <ul class="admin-nav">
+    <li class="admin-nav-item <%= currentPath === '/admin' ? 'active' : '' %>">
+      <a href="/admin">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>Bảng điều khiển</span>
+      </a>
+    </li>
+    <li class="admin-nav-item <%= currentPath.startsWith('/admin/products') ? 'active' : '' %>">
+      <a href="/admin/products">
+        <i class="fa-solid fa-boxes-stacked"></i>
+        <span>Quản lý sản phẩm</span>
+      </a>
+    </li>
+    <li class="admin-nav-item <%= currentPath.startsWith('/admin/orders') ? 'active' : '' %>">
+      <a href="/admin/orders">
+        <i class="fa-solid fa-receipt"></i>
+        <span>Quản lý đơn hàng</span>
+      </a>
+    </li>
+    <li class="admin-nav-item <%= currentPath.startsWith('/admin/users') ? 'active' : '' %>">
+      <a href="/admin/users">
+        <i class="fa-solid fa-users"></i>
+        <span>Quản lý người dùng</span>
+      </a>
+    </li>
+  </ul>
+
+  <div class="admin-footer-nav">
+    <a href="/" target="_blank">
+      <i class="fa-solid fa-arrow-up-right-from-square"></i>
+      <span>Xem trang bán hàng</span>
+    </a>
+    <div style="margin-top: 14px;">
+      <a href="/auth/logout" style="color: #ef9a9a;">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span>Đăng xuất</span>
+      </a>
+    </div>
+  </div>
+</aside>

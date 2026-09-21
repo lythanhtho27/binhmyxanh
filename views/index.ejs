@@ -1,0 +1,213 @@
+<div class="container">
+  <!-- Hero Banner -->
+  <section class="hero-banner">
+    <div class="hero-text">
+      <div class="hero-tag">
+        <i class="fa-solid fa-seedling"></i> 100% Tự Nhiên & Hữu Cơ
+      </div>
+      <h1 class="hero-title">
+        Nông Sản Sạch Tươi Ngon<br>
+        <span>Từ Nông Trại Đến Bàn Ăn</span>
+      </h1>
+      <p class="hero-desc">
+        Tuyển chọn những loại rau củ quả, nấm và hạt dinh dưỡng cao cấp đạt chuẩn VietGAP & GlobalGAP. Thu hoạch sáng sớm mỗi ngày, giữ trọn vị tươi nguyên từ đất mẹ.
+      </p>
+      <div class="hero-buttons">
+        <a href="/products" class="btn-primary">
+          <i class="fa-solid fa-basket-shopping"></i> Mua ngay hôm nay
+        </a>
+        <a href="/about" class="btn-secondary">
+          <i class="fa-solid fa-circle-info"></i> Về chúng tôi
+        </a>
+      </div>
+    </div>
+    <div class="hero-img-wrap">
+      <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop&q=80" alt="Nông sản sạch" class="hero-img">
+      <div class="hero-float-card">
+        <div class="hero-float-icon">🥬</div>
+        <div>
+          <div style="font-weight: 700; font-size: 0.95rem;">Đảm bảo tươi mới</div>
+          <div style="font-size: 0.78rem; color: var(--text-muted);">Giao trong 2 giờ tại nội thành</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slider Giới Thiệu Sản Phẩm Mới (Theo yêu cầu) -->
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Sản Phẩm Mới Thu Hoạch</h2>
+        <p class="section-subtitle">Các loại nông sản vừa cập bến sáng nay, tươi mơn mởn</p>
+      </div>
+      <a href="/products?sort=newest" class="view-all-link">
+        Xem tất cả <i class="fa-solid fa-arrow-right"></i>
+      </a>
+    </div>
+
+    <div class="slider-container">
+      <button class="slider-btn slider-prev" aria-label="Trước"><i class="fa-solid fa-chevron-left"></i></button>
+      <div class="slider-track">
+        <% newArrivals.forEach(product => { %>
+          <div class="product-card">
+            <div class="product-badge-wrap">
+              <span class="badge-new">Mới Về</span>
+              <% if (product.original_price && product.original_price > product.price) { %>
+                <span class="badge-discount">-<%= Math.round((1 - product.price / product.original_price) * 100) %>%</span>
+              <% } %>
+            </div>
+
+            <div class="product-img-holder">
+              <a href="/products/<%= product.id %>">
+                <img src="<%= product.image %>" alt="<%= product.name %>" class="product-thumb">
+              </a>
+            </div>
+
+            <div class="product-body">
+              <div class="product-origin">
+                <i class="fa-solid fa-location-dot"></i> <%= product.origin %>
+              </div>
+              <h3 class="product-name">
+                <a href="/products/<%= product.id %>"><%= product.name %></a>
+              </h3>
+              <div class="product-rating">
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star-half-stroke"></i>
+                <span>(<%= product.sold_count %> đã bán)</span>
+              </div>
+
+              <div class="product-footer">
+                <div class="product-price-box">
+                  <div class="product-price"><%= Number(product.price).toLocaleString('vi-VN') %>đ <span class="product-unit">/ <%= product.unit %></span></div>
+                  <% if (product.original_price && product.original_price > product.price) { %>
+                    <div class="product-original-price"><%= Number(product.original_price).toLocaleString('vi-VN') %>đ</div>
+                  <% } %>
+                </div>
+                <button class="btn-add-cart ajax-add-to-cart" data-product-id="<%= product.id %>" title="Thêm vào giỏ">
+                  <i class="fa-solid fa-cart-plus"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+      <button class="slider-btn slider-next" aria-label="Sau"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+  </section>
+
+  <!-- Danh Mục Nông Sản Nổi Bật -->
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Danh Mục Nông Sản</h2>
+        <p class="section-subtitle">Đa dạng lựa chọn cho bữa cơm dinh dưỡng của mọi nhà</p>
+      </div>
+    </div>
+
+    <div class="categories-grid">
+      <% categories.forEach(cat => { %>
+        <a href="/products?category=<%= cat.id %>" class="category-card">
+          <img src="<%= cat.image %>" alt="<%= cat.name %>" class="category-img">
+          <div class="category-name"><%= cat.name %></div>
+          <div class="category-desc"><%= cat.description %></div>
+        </a>
+      <% }) %>
+    </div>
+  </section>
+
+  <!-- Sản Phẩm Bán Chạy / Nổi Bật -->
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Nông Sản Bán Chạy</h2>
+        <p class="section-subtitle">Được khách hàng tin dùng và đánh giá cao nhất</p>
+      </div>
+      <a href="/products?sort=popular" class="view-all-link">
+        Xem tất cả <i class="fa-solid fa-arrow-right"></i>
+      </a>
+    </div>
+
+    <div class="products-grid">
+      <% featuredProducts.forEach(product => { %>
+        <div class="product-card">
+          <div class="product-badge-wrap">
+            <span class="badge-cert"><%= product.certification %></span>
+            <% if (product.original_price && product.original_price > product.price) { %>
+              <span class="badge-discount">-<%= Math.round((1 - product.price / product.original_price) * 100) %>%</span>
+            <% } %>
+          </div>
+
+          <div class="product-img-holder">
+            <a href="/products/<%= product.id %>">
+              <img src="<%= product.image %>" alt="<%= product.name %>" class="product-thumb">
+            </a>
+          </div>
+
+          <div class="product-body">
+            <div class="product-origin">
+              <i class="fa-solid fa-location-dot"></i> <%= product.origin %>
+            </div>
+            <h3 class="product-name">
+              <a href="/products/<%= product.id %>"><%= product.name %></a>
+            </h3>
+            <div class="product-rating">
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <span>(<%= product.sold_count %> đã mua)</span>
+            </div>
+
+            <div class="product-footer">
+              <div class="product-price-box">
+                <div class="product-price"><%= Number(product.price).toLocaleString('vi-VN') %>đ <span class="product-unit">/ <%= product.unit %></span></div>
+                <% if (product.original_price && product.original_price > product.price) { %>
+                  <div class="product-original-price"><%= Number(product.original_price).toLocaleString('vi-VN') %>đ</div>
+                <% } %>
+              </div>
+              <button class="btn-add-cart ajax-add-to-cart" data-product-id="<%= product.id %>" title="Thêm vào giỏ">
+                <i class="fa-solid fa-cart-plus"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </section>
+
+  <!-- Cam Kết Bình Mỹ Xanh -->
+  <section class="trust-banner">
+    <div class="trust-item">
+      <div class="trust-icon"><i class="fa-solid fa-award"></i></div>
+      <div>
+        <div class="trust-title">Chuẩn VietGAP 100%</div>
+        <div class="trust-desc">Kiểm định nghiêm ngặt, an toàn cho sức khỏe</div>
+      </div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-icon"><i class="fa-solid fa-truck-fast"></i></div>
+      <div>
+        <div class="trust-title">Giao Nhanh Siêu Tốc</div>
+        <div class="trust-desc">Đảm bảo độ tươi ngon từ vườn đến nhà bạn</div>
+      </div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-icon"><i class="fa-solid fa-rotate-left"></i></div>
+      <div>
+        <div class="trust-title">Đổi Trả Dễ Dàng</div>
+        <div class="trust-desc">Cam kết hoàn tiền hoặc đổi ngay nếu dập úng</div>
+      </div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-icon"><i class="fa-solid fa-hand-holding-heart"></i></div>
+      <div>
+        <div class="trust-title">Đồng Hành Nông Dân</div>
+        <div class="trust-desc">Ủng hộ hợp tác xã và kinh tế nông nghiệp Việt</div>
+      </div>
+    </div>
+  </section>
+</div>

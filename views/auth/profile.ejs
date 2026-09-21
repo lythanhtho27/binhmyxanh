@@ -1,0 +1,110 @@
+<div class="container" style="padding-top: 24px; padding-bottom: 50px;">
+  <div class="breadcrumb">
+    <a href="/"><i class="fa-solid fa-house"></i> Trang chủ</a>
+    <span>/</span>
+    <span>Tài khoản của tôi</span>
+  </div>
+
+  <h1 style="font-size: 1.7rem; font-weight: 800; color: var(--text-main); margin-bottom: 24px;">
+    Thông Tin Cá Nhân & Lịch Sử Đơn Hàng
+  </h1>
+
+  <% if (message) { %>
+    <div class="auth-alert success" style="margin-bottom: 20px;">
+      <i class="fa-solid fa-circle-check"></i> <%= message %>
+    </div>
+  <% } %>
+
+  <div style="display: grid; grid-template-columns: 360px 1fr; gap: 32px; align-items: start;">
+    <!-- Cột trái: Form cập nhật thông tin -->
+    <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 24px; box-shadow: var(--shadow-sm);">
+      <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--primary); margin-bottom: 18px;">
+        <i class="fa-solid fa-id-card"></i> Hồ sơ người dùng
+      </h2>
+
+      <form action="/auth/profile" method="POST">
+        <div class="form-group">
+          <label>Email đăng ký</label>
+          <input type="text" class="form-control" value="<%= user.email %>" disabled style="background: #f5f5f5;">
+        </div>
+
+        <div class="form-group">
+          <label for="full_name">Họ và tên</label>
+          <input type="text" id="full_name" name="full_name" class="form-control" required value="<%= user.full_name %>">
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Số điện thoại</label>
+          <input type="tel" id="phone" name="phone" class="form-control" value="<%= user.phone || '' %>">
+        </div>
+
+        <div class="form-group">
+          <label for="address">Địa chỉ giao hàng</label>
+          <textarea id="address" name="address" class="form-control" rows="3"><%= user.address || '' %></textarea>
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 10px;">
+          <i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi
+        </button>
+      </form>
+    </div>
+
+    <!-- Cột phải: Lịch sử đơn hàng -->
+    <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 24px; box-shadow: var(--shadow-sm);">
+      <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--primary); margin-bottom: 18px;">
+        <i class="fa-solid fa-clock-rotate-left"></i> Đơn hàng đã đặt (<%= orders.length %>)
+      </h2>
+
+      <% if (orders.length === 0) { %>
+        <p style="color: var(--text-muted); font-size: 0.95rem; text-align: center; padding: 30px 0;">
+          Bạn chưa có đơn hàng nào tại Bình Mỹ Xanh.
+        </p>
+      <% } else { %>
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+            <thead>
+              <tr style="background: var(--primary-soft); text-align: left;">
+                <th style="padding: 10px 14px;">Mã đơn</th>
+                <th style="padding: 10px 14px;">Ngày đặt</th>
+                <th style="padding: 10px 14px;">Tổng tiền</th>
+                <th style="padding: 10px 14px;">Thanh toán</th>
+                <th style="padding: 10px 14px;">Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% orders.forEach(ord => { %>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                  <td style="padding: 12px 14px; font-weight: 700; color: var(--primary);">
+                    <a href="/cart/success/<%= ord.order_code %>"><%= ord.order_code %></a>
+                  </td>
+                  <td style="padding: 12px 14px; color: var(--text-muted);">
+                    <%= new Date(ord.created_at).toLocaleDateString('vi-VN') %>
+                  </td>
+                  <td style="padding: 12px 14px; font-weight: 700;">
+                    <%= Number(ord.total_amount).toLocaleString('vi-VN') %>đ
+                  </td>
+                  <td style="padding: 12px 14px;">
+                    <%= ord.payment_method === 'banking' ? 'Chuyển khoản' : 'COD' %>
+                  </td>
+                  <td style="padding: 12px 14px;">
+                    <% if (ord.status === 'pending') { %>
+                      <span class="badge badge-pending">Chờ xác nhận</span>
+                    <% } else if (ord.status === 'processing') { %>
+                      <span class="badge" style="background:#e0f2fe; color:#0369a1;">Đang xử lý</span>
+                    <% } else if (ord.status === 'shipping') { %>
+                      <span class="badge badge-shipping">Đang giao</span>
+                    <% } else if (ord.status === 'completed') { %>
+                      <span class="badge badge-completed">Hoàn thành</span>
+                    <% } else { %>
+                      <span class="badge badge-cancelled">Đã hủy</span>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>

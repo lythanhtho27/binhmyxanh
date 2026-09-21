@@ -1,0 +1,56 @@
+<div class="container">
+  <div class="auth-wrapper" style="max-width: 480px;">
+    <div class="auth-header">
+      <div style="font-size: 2.2rem;">🌱</div>
+      <h1 class="auth-title">Đăng Ký Thành Viên</h1>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Trở thành thành viên để nhận ngay nhiều ưu đãi nông sản</p>
+    </div>
+
+    <% if (error) { %>
+      <div class="auth-alert error">
+        <i class="fa-solid fa-circle-exclamation"></i> <%= error %>
+      </div>
+    <% } %>
+
+    <form action="/auth/register" method="POST">
+      <div class="form-group">
+        <label for="full_name">Họ và tên *</label>
+        <input type="text" id="full_name" name="full_name" class="form-control" required placeholder="Nguyễn Văn A">
+      </div>
+
+      <div class="form-group">
+        <label for="email">Địa chỉ Email *</label>
+        <input type="email" id="email" name="email" class="form-control" required placeholder="name@example.com">
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+        <div class="form-group">
+          <label for="password">Mật khẩu *</label>
+          <input type="password" id="password" name="password" class="form-control" required placeholder="Ít nhất 6 ký tự">
+        </div>
+        <div class="form-group">
+          <label for="confirm_password">Nhập lại mật khẩu *</label>
+          <input type="password" id="confirm_password" name="confirm_password" class="form-control" required placeholder="Nhập lại mật khẩu">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Số điện thoại</label>
+        <input type="tel" id="phone" name="phone" class="form-control" placeholder="0912345678">
+      </div>
+
+      <div class="form-group">
+        <label for="address">Địa chỉ giao hàng mặc định</label>
+        <input type="text" id="address" name="address" class="form-control" placeholder="Số nhà, đường, phường, quận/huyện...">
+      </div>
+
+      <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 12px; margin-top: 10px;">
+        <i class="fa-solid fa-user-plus"></i> Hoàn tất đăng ký
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 20px; font-size: 0.9rem; color: var(--text-muted);">
+      Đã có tài khoản? <a href="/auth/login" style="color: var(--primary); font-weight: 700;">Đăng nhập</a>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title : 'Quản trị Bình Mỹ Xanh' %></title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Admin CSS -->
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <%- include('../partials/admin-sidebar') %>
+
+  <!-- Overlay che màn hình khi mở menu admin trên mobile -->
+  <div class="admin-sidebar-overlay" id="admin-sidebar-overlay"></div>
+
+  <!-- Main Area -->
+  <div class="admin-main">
+    <header class="admin-header">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <button type="button" class="admin-sidebar-toggle" id="admin-sidebar-toggle-btn" aria-label="Menu quản trị">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="admin-title"><%= title %></div>
+      </div>
+      <div class="admin-user-badge">
+        <i class="fa-solid fa-user-shield"></i>
+        <span><%= currentUser ? currentUser.full_name : 'Quản Trị Viên' %></span>
+      </div>
+    </header>
+
+    <div class="admin-body">
+      <%- body %>
+    </div>
+  </div>
+
+  <!-- Admin JS -->
+  <script src="/js/admin.js"></script>
+</body>
+</html>

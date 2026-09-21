@@ -1,0 +1,105 @@
+<div class="admin-card">
+  <div class="admin-card-header">
+    <div>
+      <h2 class="admin-card-title"><i class="fa-solid fa-users"></i> Quản Lý Người Dùng (<%= totalUsers %>)</h2>
+    </div>
+  </div>
+
+  <% if (message) { %>
+    <div class="badge <%= message.type === 'success' ? 'badge-completed' : 'badge-cancelled' %>" style="display: block; padding: 10px 16px; margin-bottom: 20px; font-size: 0.9rem;">
+      <%= message.text %>
+    </div>
+  <% } %>
+
+  <!-- Tìm kiếm người dùng -->
+  <div style="margin-bottom: 20px;">
+    <form action="/admin/users" method="GET" style="display: flex; gap: 10px; max-width: 420px;">
+      <input type="text" name="search" placeholder="Tìm theo tên, email hoặc SĐT..." value="<%= searchQuery %>" class="form-control">
+      <button type="submit" class="btn-sm btn-primary-sm">Tìm kiếm</button>
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Họ và tên</th>
+          <th>Email</th>
+          <th>Số điện thoại</th>
+          <th>Địa chỉ</th>
+          <th>Vai trò</th>
+          <th>Trạng thái</th>
+          <th>Ngày tham gia</th>
+          <th style="text-align: right;">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (users.length === 0) { %>
+          <tr>
+            <td colspan="9" style="text-align: center; color: var(--admin-muted); padding: 30px;">Không tìm thấy người dùng nào.</td>
+          </tr>
+        <% } else { %>
+          <% users.forEach(u => { %>
+            <tr>
+              <td>#<%= u.id %></td>
+              <td><strong><%= u.full_name %></strong></td>
+              <td><%= u.email %></td>
+              <td><%= u.phone || 'Chưa cập nhật' %></td>
+              <td style="max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                <%= u.address || 'Chưa cập nhật' %>
+              </td>
+              <td>
+                <% if (u.role === 'admin') { %>
+                  <span class="badge" style="background:#e8f5e9; color:#2e7d32;"><i class="fa-solid fa-shield-halved"></i> Quản Trị Viên</span>
+                <% } else { %>
+                  <span class="badge" style="background:#f5f5f5; color:#616161;"><i class="fa-solid fa-user"></i> Khách Hàng</span>
+                <% } %>
+              </td>
+              <td>
+                <span class="badge <%= u.status === 'active' ? 'badge-active' : 'badge-locked' %>">
+                  <%= u.status === 'active' ? 'Hoạt động' : 'Bị khóa' %>
+                </span>
+              </td>
+              <td style="color: var(--admin-muted); font-size: 0.85rem;">
+                <%= new Date(u.created_at).toLocaleDateString('vi-VN') %>
+              </td>
+              <td style="text-align: right;">
+                <div style="display: inline-flex; gap: 6px;">
+                  <!-- Đổi vai trò -->
+                  <form action="/admin/users/role/<%= u.id %>" method="POST" style="display: inline; margin: 0;">
+                    <input type="hidden" name="role" value="<%= u.role === 'admin' ? 'customer' : 'admin' %>">
+                    <button type="submit" class="btn-sm btn-outline-sm" title="Chuyển quyền">
+                      <%= u.role === 'admin' ? 'Hạ quyền' : 'Thăng Admin' %>
+                    </button>
+                  </form>
+
+                  <!-- Khóa / Mở khóa -->
+                  <form action="/admin/users/status/<%= u.id %>" method="POST" style="display: inline; margin: 0;">
+                    <input type="hidden" name="status" value="<%= u.status === 'active' ? 'locked' : 'active' %>">
+                    <button type="submit" class="btn-sm <%= u.status === 'active' ? 'btn-danger-sm' : 'btn-primary-sm' %>" 
+                            onclick="return confirm('Bạn có chắc chắn muốn <%= u.status === 'active' ? 'khóa' : 'mở khóa' %> tài khoản này?')">
+                      <%= u.status === 'active' ? 'Khóa' : 'Mở khóa' %>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% }) %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Phân trang -->
+  <% if (totalPages > 1) { %>
+    <div style="display: flex; justify-content: center; gap: 8px; margin-top: 24px;">
+      <% for (let i = 1; i <= totalPages; i++) { %>
+        <a href="/admin/users?page=<%= i %><%= searchQuery ? '&search=' + searchQuery : '' %>" 
+           class="btn-sm <%= currentPage === i ? 'btn-primary-sm' : 'btn-outline-sm' %>">
+          <%= i %>
+        </a>
+      <% } %>
+    </div>
+  <% } %>
+</div>

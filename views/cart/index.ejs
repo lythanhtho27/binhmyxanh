@@ -1,0 +1,125 @@
+<div class="container" style="padding-top: 24px; padding-bottom: 50px;">
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a href="/"><i class="fa-solid fa-house"></i> Trang chủ</a>
+    <span>/</span>
+    <span>Giỏ hàng</span>
+  </div>
+
+  <h1 style="font-size: 1.7rem; font-weight: 800; color: var(--text-main); margin-bottom: 24px;">
+    Giỏ Hàng Của Bạn (<%= cartCount %> món)
+  </h1>
+
+  <% if (cart.length === 0) { %>
+    <div style="background: white; border-radius: var(--radius-lg); padding: 60px 20px; text-align: center; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
+      <div style="font-size: 3.5rem; margin-bottom: 16px;">🛒</div>
+      <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 8px;">Giỏ hàng của bạn đang trống</h2>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 24px;">Hãy khám phá các loại nông sản tươi ngon, sạch chuẩn VietGAP để lấp đầy giỏ hàng nhé!</p>
+      <a href="/products" class="btn-primary" style="padding: 12px 30px;">
+        <i class="fa-solid fa-store"></i> Khám phá nông sản ngay
+      </a>
+    </div>
+  <% } else { %>
+    <div class="cart-layout">
+      <!-- Bảng giỏ hàng -->
+      <div>
+        <div class="cart-table-wrapper table-responsive">
+          <table class="cart-table">
+          <thead>
+            <tr>
+              <th>Sản phẩm</th>
+              <th>Đơn giá</th>
+              <th style="text-align: center;">Số lượng</th>
+              <th>Thành tiền</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% cart.forEach(item => { %>
+              <tr>
+                <td>
+                  <div class="cart-product-cell">
+                    <img src="<%= item.product_image %>" alt="<%= item.product_name %>" class="cart-product-thumb">
+                    <div>
+                      <a href="/products/<%= item.product_id %>" style="font-weight: 700; color: var(--text-main); font-size: 0.98rem; display: block;">
+                        <%= item.product_name %>
+                      </a>
+                      <span style="font-size: 0.8rem; color: var(--text-light);"><%= item.unit %></span>
+                    </div>
+                  </div>
+                </td>
+                <td style="font-weight: 600;"><%= Number(item.price).toLocaleString('vi-VN') %>đ</td>
+                <td style="text-align: center;">
+                  <div class="qty-control" style="display: inline-flex;">
+                    <button type="button" class="qty-btn qty-minus">-</button>
+                    <input type="number" class="qty-input cart-qty-input" data-product-id="<%= item.product_id %>" value="<%= item.quantity %>" min="1" max="99">
+                    <button type="button" class="qty-btn qty-plus">+</button>
+                  </div>
+                </td>
+                <td style="font-weight: 700; color: var(--primary);">
+                  <%= Number(item.price * item.quantity).toLocaleString('vi-VN') %>đ
+                </td>
+                <td>
+                  <a href="/cart/remove/<%= item.product_id %>" style="color: #ef5350; font-size: 1.1rem; padding: 6px;" title="Xóa món này">
+                    <i class="fa-regular fa-trash-can"></i>
+                  </a>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+          <a href="/products" class="btn-secondary" style="font-size: 0.92rem;">
+            <i class="fa-solid fa-arrow-left"></i> Tiếp tục mua thêm nông sản
+          </a>
+        </div>
+      </div>
+
+      <!-- Cột tổng kết đơn hàng -->
+      <aside>
+        <div class="cart-summary-card">
+          <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+            Tóm tắt đơn hàng
+          </h3>
+
+          <div class="summary-row">
+            <span style="color: var(--text-muted);">Tạm tính:</span>
+            <span style="font-weight: 700;"><%= Number(subtotal).toLocaleString('vi-VN') %>đ</span>
+          </div>
+
+          <div class="summary-row">
+            <span style="color: var(--text-muted);">Phí vận chuyển:</span>
+            <span>
+              <% if (shippingFee === 0) { %>
+                <strong style="color: var(--primary);">Miễn phí</strong>
+              <% } else { %>
+                <%= Number(shippingFee).toLocaleString('vi-VN') %>đ
+              <% } %>
+            </span>
+          </div>
+
+          <% if (subtotal < 300000) { %>
+            <div style="background-color: var(--primary-soft); border: 1px solid var(--primary-border); border-radius: var(--radius-sm); padding: 10px; font-size: 0.8rem; color: var(--primary); margin: 12px 0;">
+              <i class="fa-solid fa-gift"></i> Mua thêm <strong><%= Number(300000 - subtotal).toLocaleString('vi-VN') %>đ</strong> để được <strong>FREESHIP</strong> toàn quốc!
+            </div>
+          <% } else { %>
+            <div style="background-color: var(--primary-light); border: 1px solid var(--primary-border); border-radius: var(--radius-sm); padding: 10px; font-size: 0.8rem; color: var(--primary); margin: 12px 0;">
+              🎉 Đơn hàng của bạn đã đủ điều kiện <strong>Miễn phí vận chuyển</strong>!
+            </div>
+          <% } %>
+
+          <div class="summary-row summary-total">
+            <span>Tổng cộng:</span>
+            <span><%= Number(total).toLocaleString('vi-VN') %>đ</span>
+          </div>
+
+          <a href="/cart/checkout" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 20px; padding: 14px;">
+            Tiến hành đặt hàng <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </aside>
+    </div>
+  <% } %>
+</div>

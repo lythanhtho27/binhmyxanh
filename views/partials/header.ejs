@@ -1,0 +1,162 @@
+<!-- Topbar -->
+<div class="topbar">
+  <div class="container topbar-content">
+    <div>
+      <span class="topbar-badge">VietGAP</span> Cam kết 100% Nông sản tươi sạch - Thu hoạch sáng sớm mỗi ngày
+    </div>
+    <div>
+      <span>📞 Hotline: 1900 6868 | 📍 Giao hàng tận nơi toàn quốc</span>
+    </div>
+  </div>
+</div>
+
+<!-- Main Header -->
+<header class="main-header">
+  <div class="container header-inner">
+    <!-- Nút Menu Mobile -->
+    <button type="button" class="mobile-menu-toggle" id="mobile-menu-btn" aria-label="Mở Menu">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <!-- Logo -->
+    <a href="/" class="logo">
+      <div class="logo-icon">🌿</div>
+      <div>BìnhMỹ<span>Xanh</span></div>
+    </a>
+
+    <!-- Thanh tìm kiếm & Quét QR -->
+    <div class="header-search">
+      <form action="/products" method="GET">
+        <input type="text" name="search" placeholder="Tìm rau củ, trái cây, gạo, nấm sạch..." value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>">
+        <button type="button" class="btn-qr-scan" id="open-qr-scanner-btn" title="Quét mã QR để xem chi tiết sản phẩm">
+          <i class="fa-solid fa-qrcode"></i> <span>Quét QR</span>
+        </button>
+        <button type="submit" class="btn-search-submit" title="Tìm kiếm">
+          <i class="fa-solid fa-magnifying-glass"></i> <span>Tìm</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Nút tương tác người dùng & Giỏ hàng -->
+    <div class="header-actions">
+      <% if (currentUser) { %>
+        <div style="position: relative; display: inline-block;">
+          <a href="/auth/profile" class="user-action-btn">
+            <i class="fa-solid fa-circle-user" style="font-size: 1.25rem; color: var(--primary);"></i>
+            <span><%= currentUser.full_name %></span>
+          </a>
+        </div>
+        <% if (isAdmin) { %>
+          <a href="/admin" class="user-action-btn" style="background-color: #e8f5e9; color: var(--primary);" title="Quản Trị">
+            <i class="fa-solid fa-chart-pie"></i> <span>Quản Trị</span>
+          </a>
+        <% } %>
+        <a href="/auth/logout" class="user-action-btn" title="Đăng xuất">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </a>
+      <% } else { %>
+        <a href="/auth/login" class="user-action-btn" title="Đăng nhập">
+          <i class="fa-regular fa-user"></i> <span>Đăng nhập</span>
+        </a>
+        <a href="/auth/register" class="btn-primary header-register-btn" style="padding: 8px 18px; font-size: 0.88rem;">
+          Đăng ký
+        </a>
+      <% } %>
+
+      <!-- Giỏ hàng -->
+      <a href="/cart" class="cart-btn">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span>Giỏ hàng</span>
+        <span class="cart-badge"><%= cartCount %></span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Backdrop che màn hình khi mở menu mobile -->
+  <div class="mobile-nav-backdrop" id="mobile-nav-backdrop"></div>
+
+  <!-- Navigation Menu (hỗ trợ trượt ra dạng drawer trên mobile & tablet) -->
+  <nav class="navbar" id="mobile-navbar">
+    <div class="mobile-drawer-header">
+      <div class="logo">
+        <div class="logo-icon">🌿</div>
+        <div>BìnhMỹ<span>Xanh</span></div>
+      </div>
+      <button type="button" class="mobile-drawer-close" id="close-mobile-menu-btn" aria-label="Đóng Menu">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="container">
+      <ul class="nav-links">
+        <li><a href="/" class="<%= currentPath === '/' ? 'active' : '' %>"><i class="fa-solid fa-house"></i> Trang chủ</a></li>
+        <li><a href="/products" class="<%= currentPath === '/products' ? 'active' : '' %>"><i class="fa-solid fa-leaf"></i> Tất cả sản phẩm</a></li>
+        <li><a href="/products?category=1"><i class="fa-solid fa-carrot"></i> Rau củ hữu cơ</a></li>
+        <li><a href="/products?category=2"><i class="fa-solid fa-apple-whole"></i> Trái cây tươi</a></li>
+        <li><a href="/products?category=4"><i class="fa-solid fa-seedling"></i> Hạt & Nông sản khô</a></li>
+        <li><a href="/about" class="<%= currentPath === '/about' ? 'active' : '' %>"><i class="fa-solid fa-circle-info"></i> Giới thiệu</a></li>
+        <li><a href="/contact" class="<%= currentPath === '/contact' ? 'active' : '' %>"><i class="fa-solid fa-envelope"></i> Liên hệ</a></li>
+        <% if (currentUser) { %>
+          <li class="mobile-only-link"><a href="/auth/profile"><i class="fa-solid fa-user"></i> Tài khoản (<%= currentUser.full_name %>)</a></li>
+          <% if (isAdmin) { %>
+            <li class="mobile-only-link"><a href="/admin"><i class="fa-solid fa-chart-pie"></i> Quản trị Admin</a></li>
+          <% } %>
+          <li class="mobile-only-link"><a href="/auth/logout" style="color: #e53935;"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a></li>
+        <% } else { %>
+          <li class="mobile-only-link"><a href="/auth/login"><i class="fa-solid fa-user"></i> Đăng nhập</a></li>
+          <li class="mobile-only-link"><a href="/auth/register"><i class="fa-solid fa-user-plus"></i> Đăng ký thành viên</a></li>
+        <% } %>
+      </ul>
+    </div>
+  </nav>
+</header>
+
+<!-- Modal Quét Mã QR Nông Sản -->
+<div id="qr-scanner-modal" class="modal-overlay">
+  <div class="modal-content" style="max-width: 500px; text-align: center;">
+    <div class="modal-header">
+      <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px; font-size: 1.25rem;">
+        <i class="fa-solid fa-qrcode" style="color: var(--primary);"></i> Quét Mã QR Nông Sản
+      </h3>
+      <button type="button" class="modal-close" id="close-qr-scanner-btn">&times;</button>
+    </div>
+    
+    <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 16px;">
+      Quét tem mã QR trên bao bì nông sản để xem ngay nguồn gốc và chi tiết sản phẩm.
+    </p>
+
+    <!-- Tabs chọn cách quét: Camera hoặc Tải file ảnh -->
+    <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 16px;">
+      <button type="button" class="btn-sm btn-primary-sm qr-tab-btn" id="qr-tab-camera">
+        <i class="fa-solid fa-camera"></i> Dùng Camera
+      </button>
+      <button type="button" class="btn-sm btn-outline-sm qr-tab-btn" id="qr-tab-file">
+        <i class="fa-solid fa-file-image"></i> Tải ảnh tem QR
+      </button>
+    </div>
+
+    <!-- Khu vực Camera quét trực tiếp -->
+    <div id="qr-camera-section">
+      <div id="qr-reader" style="width: 100%; border-radius: 12px; overflow: hidden; background: #111; min-height: 250px;"></div>
+      <div id="qr-camera-status" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px;">
+        Đang khởi động camera... Hãy hướng camera vào mã QR nông sản.
+      </div>
+    </div>
+
+    <!-- Khu vực Tải ảnh mã QR -->
+    <div id="qr-file-section" style="display: none; padding: 28px 20px; border: 2px dashed var(--primary-border); border-radius: 12px; background: var(--primary-soft);">
+      <div style="font-size: 2.8rem; margin-bottom: 10px;">📸</div>
+      <label for="qr-input-file" class="btn-primary" style="cursor: pointer; padding: 10px 20px; font-size: 0.9rem; display: inline-flex;">
+        <i class="fa-solid fa-upload"></i> Chọn ảnh chụp mã QR
+      </label>
+      <input type="file" id="qr-input-file" accept="image/*" style="display: none;">
+      <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 10px;">
+        Hỗ trợ định dạng ảnh PNG, JPG, JPEG, WEBP từ điện thoại hoặc máy tính
+      </div>
+    </div>
+
+    <!-- Phản hồi khi quét thành công -->
+    <div id="qr-scan-feedback" style="display: none; margin-top: 16px; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 0.9rem;"></div>
+  </div>
+</div>
+

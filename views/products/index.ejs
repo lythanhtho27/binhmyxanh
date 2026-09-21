@@ -1,0 +1,149 @@
+<div class="container" style="padding-top: 24px; padding-bottom: 40px;">
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a href="/"><i class="fa-solid fa-house"></i> Trang chủ</a>
+    <span>/</span>
+    <span>Sản phẩm</span>
+    <% if (currentCategory) { %>
+      <span>/</span>
+      <span><%= currentCategory.name %></span>
+    <% } %>
+  </div>
+
+  <div class="products-page-container">
+    <!-- Sidebar lọc sản phẩm -->
+    <aside class="products-sidebar">
+      <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 16px; color: var(--primary);">
+        <i class="fa-solid fa-filter"></i> Danh mục nông sản
+      </h3>
+      
+      <ul class="sidebar-category-list">
+        <li>
+          <a href="/products<%= searchQuery ? '?search=' + searchQuery : '' %>" 
+             class="<%= !selectedCategoryId ? 'active' : '' %>">
+            <span>Tất cả</span>
+            <span class="count-badge"><%= totalProducts %></span>
+          </a>
+        </li>
+        <% categories.forEach(cat => { %>
+          <li>
+            <a href="/products?category=<%= cat.id %><%= searchQuery ? '&search=' + searchQuery : '' %>" 
+               class="<%= selectedCategoryId == cat.id ? 'active' : '' %>">
+              <span><%= cat.name %></span>
+              <i class="fa-solid fa-chevron-right" style="font-size: 0.75rem; align-self: center;"></i>
+            </a>
+          </li>
+        <% }) %>
+      </ul>
+
+      <div class="sidebar-trust-box">
+        <h4 style="font-size: 0.98rem; font-weight: 700; margin-bottom: 12px;">Cam kết chất lượng</h4>
+        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem; color: var(--text-muted);">
+          <div>✔ 100% Nông sản hữu cơ</div>
+          <div>✔ Không dư lượng thuốc BVTV</div>
+          <div>✔ Đóng gói tiêu chuẩn sạch</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Khu vực hiển thị sản phẩm -->
+    <main class="products-main-area">
+      <!-- Top filter bar -->
+      <div class="filter-top-bar">
+        <div>
+          <h1 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main);">
+            <%= currentCategory ? currentCategory.name : 'Tất Cả Nông Sản' %>
+          </h1>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">
+            <% if (searchQuery) { %>
+              Kết quả tìm kiếm cho: "<strong><%= searchQuery %></strong>" (<%= totalProducts %> sản phẩm)
+            <% } else { %>
+              Tìm thấy <%= totalProducts %> sản phẩm tươi sạch
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Sắp xếp -->
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <label for="sortSelect" style="font-size: 0.88rem; font-weight: 600; color: var(--text-muted);">Sắp xếp theo:</label>
+          <select id="sortSelect" class="form-control" style="width: auto; padding: 6px 12px; font-size: 0.88rem;" onchange="location = this.value;">
+            <option value="/products?<%= selectedCategoryId ? 'category=' + selectedCategoryId + '&' : '' %><%= searchQuery ? 'search=' + searchQuery + '&' : '' %>sort=newest" <%= currentSort === 'newest' ? 'selected' : '' %>>Mới nhất</option>
+            <option value="/products?<%= selectedCategoryId ? 'category=' + selectedCategoryId + '&' : '' %><%= searchQuery ? 'search=' + searchQuery + '&' : '' %>sort=popular" <%= currentSort === 'popular' ? 'selected' : '' %>>Bán chạy nhất</option>
+            <option value="/products?<%= selectedCategoryId ? 'category=' + selectedCategoryId + '&' : '' %><%= searchQuery ? 'search=' + searchQuery + '&' : '' %>sort=price_asc" <%= currentSort === 'price_asc' ? 'selected' : '' %>>Giá tăng dần</option>
+            <option value="/products?<%= selectedCategoryId ? 'category=' + selectedCategoryId + '&' : '' %><%= searchQuery ? 'search=' + searchQuery + '&' : '' %>sort=price_desc" <%= currentSort === 'price_desc' ? 'selected' : '' %>>Giá giảm dần</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Danh sách sản phẩm -->
+      <% if (products.length === 0) { %>
+        <div style="background: white; border-radius: var(--radius-md); padding: 48px; text-align: center; border: 1px solid var(--border-color);">
+          <div style="font-size: 3rem; margin-bottom: 12px;">🥦</div>
+          <h3 style="font-weight: 700; margin-bottom: 8px;">Không tìm thấy sản phẩm nào phù hợp</h3>
+          <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px;">Vui lòng thử tìm với từ khóa khác hoặc quay lại danh mục đầy đủ.</p>
+          <a href="/products" class="btn-primary">Xem tất cả nông sản</a>
+        </div>
+      <% } else { %>
+        <div class="products-grid">
+          <% products.forEach(product => { %>
+            <div class="product-card">
+              <div class="product-badge-wrap">
+                <span class="badge-cert"><%= product.certification %></span>
+                <% if (product.original_price && product.original_price > product.price) { %>
+                  <span class="badge-discount">-<%= Math.round((1 - product.price / product.original_price) * 100) %>%</span>
+                <% } %>
+              </div>
+
+              <div class="product-img-holder">
+                <a href="/products/<%= product.id %>">
+                  <img src="<%= product.image %>" alt="<%= product.name %>" class="product-thumb">
+                </a>
+              </div>
+
+              <div class="product-body">
+                <div class="product-origin">
+                  <i class="fa-solid fa-location-dot"></i> <%= product.origin %>
+                </div>
+                <h3 class="product-name">
+                  <a href="/products/<%= product.id %>"><%= product.name %></a>
+                </h3>
+                <div class="product-rating">
+                  <i class="fa-solid fa-star"></i>
+                  <i class="fa-solid fa-star"></i>
+                  <i class="fa-solid fa-star"></i>
+                  <i class="fa-solid fa-star"></i>
+                  <i class="fa-solid fa-star"></i>
+                  <span>(<%= product.sold_count %>)</span>
+                </div>
+
+                <div class="product-footer">
+                  <div class="product-price-box">
+                    <div class="product-price"><%= Number(product.price).toLocaleString('vi-VN') %>đ <span class="product-unit">/ <%= product.unit %></span></div>
+                    <% if (product.original_price && product.original_price > product.price) { %>
+                      <div class="product-original-price"><%= Number(product.original_price).toLocaleString('vi-VN') %>đ</div>
+                    <% } %>
+                  </div>
+                  <button class="btn-add-cart ajax-add-to-cart" data-product-id="<%= product.id %>" title="Thêm vào giỏ">
+                    <i class="fa-solid fa-cart-plus"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+
+        <!-- Phân trang -->
+        <% if (totalPages > 1) { %>
+          <div style="display: flex; justify-content: center; gap: 8px; margin-top: 36px;">
+            <% for (let p = 1; p <= totalPages; p++) { %>
+              <a href="/products?<%= selectedCategoryId ? 'category=' + selectedCategoryId + '&' : '' %><%= searchQuery ? 'search=' + searchQuery + '&' : '' %>sort=<%= currentSort %>&page=<%= p %>" 
+                 style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-weight: 700; font-size: 0.95rem; <%= currentPage === p ? 'background-color: var(--primary); color: white; border-color: var(--primary);' : 'background: white; color: var(--text-main);' %>">
+                <%= p %>
+              </a>
+            <% } %>
+          </div>
+        <% } %>
+      <% } %>
+    </main>
+  </div>
+</div>

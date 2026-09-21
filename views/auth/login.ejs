@@ -1,0 +1,48 @@
+<div class="container">
+  <div class="auth-wrapper">
+    <div class="auth-header">
+      <div style="font-size: 2.2rem;">🌿</div>
+      <h1 class="auth-title">Đăng Nhập Tài Khoản</h1>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Chào mừng bạn trở lại với Bình Mỹ Xanh</p>
+    </div>
+
+    <% if (error) { %>
+      <div class="auth-alert error">
+        <i class="fa-solid fa-circle-exclamation"></i> <%= error %>
+      </div>
+    <% } %>
+
+    <% if (success) { %>
+      <div class="auth-alert success">
+        <i class="fa-solid fa-circle-check"></i> <%= success %>
+      </div>
+    <% } %>
+
+    <form action="/auth/login" method="POST">
+      <div class="form-group">
+        <label for="email">Địa chỉ Email</label>
+        <input type="email" id="email" name="email" class="form-control" required placeholder="name@example.com">
+      </div>
+
+      <div class="form-group">
+        <label for="password">Mật khẩu</label>
+        <input type="password" id="password" name="password" class="form-control" required placeholder="••••••••">
+      </div>
+
+      <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 12px; margin-top: 10px;">
+        <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập ngay
+      </button>
+    </form>
+
+    <!-- Gợi ý tài khoản demo để chấm điểm/kiểm thử tiện lợi -->
+    <div style="background-color: var(--primary-soft); border: 1px solid var(--primary-border); border-radius: var(--radius-sm); padding: 12px 14px; margin-top: 24px; font-size: 0.82rem; line-height: 1.6;">
+      <strong style="color: var(--primary);">💡 Tài khoản thử nghiệm:</strong><br>
+      • <strong>Admin:</strong> <code>admin@nongsan.vn</code> | Pass: <code>admin123</code><br>
+      • <strong>Khách hàng:</strong> <code>khachhang@gmail.com</code> | Pass: <code>user123</code>
+    </div>
+
+    <div style="text-align: center; margin-top: 20px; font-size: 0.9rem; color: var(--text-muted);">
+      Chưa có tài khoản? <a href="/auth/register" style="color: var(--primary); font-weight: 700;">Đăng ký tại đây</a>
+    </div>
+  </div>
+</div>

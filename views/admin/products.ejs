@@ -112,10 +112,17 @@
 </div>
 
 <!-- MODAL THÊM SẢN PHẨM -->
+<!-- MODAL THÊM SẢN PHẨM -->
 <div id="add-product-modal" class="modal-overlay">
   <div class="modal-content">
     <div class="modal-header">
-      <h3 class="modal-title"><i class="fa-solid fa-leaf"></i> Thêm Nông Sản Mới</h3>
+      <div>
+        <h3 class="modal-title">
+          <span class="modal-title-icon"><i class="fa-solid fa-leaf"></i></span>
+          <span>Thêm Nông Sản Mới</span>
+        </h3>
+        <div class="modal-subtitle">Tạo mới hồ sơ nông sản sạch, thiết lập giá bán và tiêu chuẩn VietGAP</div>
+      </div>
       <button type="button" class="modal-close close-add-modal" title="Đóng">&times;</button>
     </div>
 
@@ -139,13 +146,13 @@
       <!-- TAB 1: THÔNG TIN & GIÁ -->
       <div id="add-tab-basic" class="modal-tab-pane active">
         <div class="form-group">
-          <label>Tên nông sản / Sản phẩm <span style="color: red;">*</span></label>
-          <input type="text" name="name" class="form-control" required placeholder="Ví dụ: Rau muống lá tre VietGAP, Cà chua Cherry...">
+          <label>Tên nông sản / Sản phẩm <span class="required-star">*</span></label>
+          <input type="text" name="name" class="form-control" required placeholder="Ví dụ: Rau muống lá tre VietGAP, Cà chua Cherry Sakata...">
         </div>
 
         <div class="grid-2">
           <div class="form-group">
-            <label>Danh mục sản phẩm <span style="color: red;">*</span></label>
+            <label>Danh mục sản phẩm <span class="required-star">*</span></label>
             <select name="category_id" class="form-control" required>
               <% categories.forEach(cat => { %>
                 <option value="<%= cat.id %>"><%= cat.name %></option>
@@ -154,34 +161,63 @@
           </div>
           <div class="form-group">
             <label>Đơn vị tính</label>
-            <input type="text" name="unit" class="form-control" value="kg" placeholder="kg, bó 500g, khay 1kg, hộp...">
+            <div class="input-with-affix">
+              <input type="text" name="unit" class="form-control" value="kg" placeholder="kg, bó 500g, khay 1kg, hộp...">
+              <span class="input-affix">ĐVT</span>
+            </div>
           </div>
         </div>
 
         <div class="grid-3">
           <div class="form-group">
-            <label>Giá bán hiện tại (VNĐ) <span style="color: red;">*</span></label>
-            <input type="number" name="price" class="form-control" required placeholder="35000">
+            <label>Giá bán hiện tại <span class="required-star">*</span></label>
+            <div class="input-with-affix">
+              <input type="number" id="add-price" name="price" class="form-control" required placeholder="35000" min="0" step="1000">
+              <span class="input-affix">VNĐ</span>
+            </div>
+            <div id="add-price-preview" class="price-preview-tag" style="display: none;">
+              <i class="fa-solid fa-tag"></i> <span>0 đ</span>
+            </div>
           </div>
           <div class="form-group">
             <label>Giá niêm yết (Gạch ngang)</label>
-            <input type="number" name="original_price" class="form-control" placeholder="45000">
+            <div class="input-with-affix">
+              <input type="number" id="add-original-price" name="original_price" class="form-control" placeholder="45000" min="0" step="1000">
+              <span class="input-affix">VNĐ</span>
+            </div>
+            <div id="add-orig-price-preview" class="price-preview-tag" style="display: none; background: #fff3e0; color: #e65100; border-color: #ffe0b2;">
+              <i class="fa-solid fa-tag"></i> <span>0 đ</span>
+            </div>
           </div>
           <div class="form-group">
             <label>Số lượng tồn kho</label>
-            <input type="number" name="stock" class="form-control" value="100">
+            <input type="number" name="stock" class="form-control" value="100" min="0">
           </div>
         </div>
 
-        <div style="background: #f8faf8; border: 1px solid #e2ede3; border-radius: 10px; padding: 14px 18px; margin-top: 10px; display: flex; gap: 24px;">
-          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #1b5e20;">
-            <input type="checkbox" name="is_featured" value="1" checked style="width: 17px; height: 17px; accent-color: #2e7d32;">
-            <i class="fa-solid fa-fire" style="color: #e65100;"></i> Sản phẩm nổi bật / Bán chạy
-          </label>
-          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #1b5e20;">
-            <input type="checkbox" name="is_new" value="1" checked style="width: 17px; height: 17px; accent-color: #2e7d32;">
-            <i class="fa-solid fa-sparkles" style="color: #2e7d32;"></i> Nông sản mới thu hoạch
-          </label>
+        <!-- Thẻ bật tắt nổi bật & nông sản mới dạng Switch Card -->
+        <div class="feature-toggle-grid">
+          <div class="feature-toggle-card featured-card active" id="card-add-featured">
+            <div class="feature-toggle-icon icon-featured">
+              <i class="fa-solid fa-fire"></i>
+            </div>
+            <div class="feature-toggle-info">
+              <span class="feature-toggle-title">Sản phẩm nổi bật / Bán chạy</span>
+              <span class="feature-toggle-desc">Ưu tiên hiển thị đầu trang chủ & mục đề xuất</span>
+            </div>
+            <input type="checkbox" id="add-featured" name="is_featured" value="1" checked>
+          </div>
+
+          <div class="feature-toggle-card active" id="card-add-new">
+            <div class="feature-toggle-icon icon-new">
+              <i class="fa-solid fa-sparkles"></i>
+            </div>
+            <div class="feature-toggle-info">
+              <span class="feature-toggle-title">Nông sản mới thu hoạch</span>
+              <span class="feature-toggle-desc">Gắn nhãn "Mới" xanh tươi thu hút khách</span>
+            </div>
+            <input type="checkbox" id="add-new" name="is_new" value="1" checked>
+          </div>
         </div>
       </div>
 
@@ -194,7 +230,7 @@
               <img id="add-preview-img" src="https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&auto=format&fit=crop&q=80" alt="Xem trước ảnh nông sản">
               <div class="preview-tag"><i class="fa-solid fa-eye"></i> Xem trước trực tiếp</div>
             </div>
-            <div style="font-size: 0.78rem; color: var(--admin-muted); margin-top: 8px;">
+            <div style="font-size: 0.8rem; color: var(--admin-muted); margin-top: 8px;">
               Tỷ lệ khuyến nghị: 1:1 hoặc 4:3 (Tối thiểu 600x600px)
             </div>
           </div>
@@ -210,18 +246,18 @@
             </div>
 
             <!-- Hoặc nhập link ảnh trực tiếp -->
-            <div class="form-group" style="margin-bottom: 14px;">
-              <label style="font-size: 0.85rem; font-weight: 600;">Hoặc nhập đường dẫn URL ảnh:</label>
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label>Đường dẫn hình ảnh (URL):</label>
               <div style="display: flex; gap: 8px;">
                 <input type="url" id="add-image-url" name="image" class="form-control" value="https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&auto=format&fit=crop&q=80" placeholder="https://domain.com/hinh-anh.jpg">
-                <button type="button" class="btn-sm btn-outline-sm" id="btn-add-preview-url" style="white-space: nowrap;">
+                <button type="button" class="btn-sm btn-outline-sm" id="btn-add-preview-url" style="white-space: nowrap; padding: 10px 16px;">
                   <i class="fa-solid fa-rotate"></i> Xem thử
                 </button>
               </div>
             </div>
 
             <!-- Gợi ý ảnh mẫu đẹp một chạm -->
-            <div class="preset-section-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Gợi ý ảnh nông sản sạch một chạm:</div>
+            <div class="preset-section-title"><i class="fa-solid fa-wand-magic-sparkles" style="color: #2e7d32;"></i> Gợi ý ảnh nông sản sạch một chạm:</div>
             <div class="preset-gallery" data-target-modal="add">
               <div class="preset-thumb-item" data-url="https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&auto=format&fit=crop&q=80" title="Rau muống xanh">
                 <img src="https://images.unsplash.com/photo-1540420773420-3366772f4999?w=200&auto=format&fit=crop&q=80" alt="Rau muống">
@@ -262,24 +298,32 @@
 
       <!-- TAB 3: TIÊU CHUẨN & NGUỒN GỐC -->
       <div id="add-tab-vietgap" class="modal-tab-pane">
+        <div class="form-section-banner">
+          <i class="fa-solid fa-shield-halved"></i>
+          <div>
+            <div class="form-section-banner-title">Tiêu Chuẩn Nông Nghiệp & Nguồn Gốc Xuất Xứ</div>
+            <div class="form-section-banner-desc">Minh bạch thông tin vùng trồng và tiêu chuẩn chất lượng VietGAP/GlobalGAP</div>
+          </div>
+        </div>
+
         <div class="grid-2">
           <div class="form-group">
-            <label>Xuất xứ (Vùng trồng canh tác)</label>
+            <label><i class="fa-solid fa-location-dot" style="color: #2e7d32;"></i> Xuất xứ (Vùng trồng canh tác)</label>
             <input type="text" name="origin" class="form-control" value="Bình Mỹ, Củ Chi, TP.HCM" placeholder="Xã/Huyện, Tỉnh...">
           </div>
           <div class="form-group">
-            <label>Chứng nhận an toàn</label>
+            <label><i class="fa-solid fa-certificate" style="color: #2e7d32;"></i> Chứng nhận an toàn</label>
             <input type="text" name="certification" class="form-control" value="VietGAP" placeholder="VietGAP, GlobalGAP, Hữu cơ Organic, OCOP 4 sao...">
           </div>
         </div>
 
         <div class="grid-2">
           <div class="form-group">
-            <label>Thời điểm / Chu kỳ thu hoạch</label>
+            <label><i class="fa-solid fa-calendar-check" style="color: #2e7d32;"></i> Thời điểm / Chu kỳ thu hoạch</label>
             <input type="text" name="harvest_date" class="form-control" value="Hái tươi mỗi sáng sớm" placeholder="Ví dụ: Hái mới mỗi sáng, Thu hoạch ngày 27/09/2026...">
           </div>
           <div class="form-group">
-            <label>Hạn sử dụng khuyến nghị</label>
+            <label><i class="fa-solid fa-clock" style="color: #2e7d32;"></i> Hạn sử dụng khuyến nghị</label>
             <input type="text" name="shelf_life" class="form-control" value="5 - 7 ngày bảo quản ngăn mát" placeholder="5-7 ngày, 1 tháng...">
           </div>
         </div>
@@ -288,33 +332,33 @@
       <!-- TAB 4: MÔ TẢ & BẢO QUẢN -->
       <div id="add-tab-desc" class="modal-tab-pane">
         <div class="form-group">
-          <label>Mô tả ngắn (Hiển thị ở danh sách sản phẩm)</label>
+          <label><i class="fa-solid fa-align-left" style="color: #2e7d32;"></i> Mô tả ngắn (Hiển thị ở danh sách sản phẩm)</label>
           <textarea name="short_description" class="form-control" rows="2" placeholder="Tóm tắt ngắn gọn hương vị, độ tươi và ưu điểm nổi bật nhất..."></textarea>
         </div>
 
         <div class="form-group">
-          <label>Mô tả chi tiết & Câu chuyện sản phẩm</label>
+          <label><i class="fa-solid fa-newspaper" style="color: #2e7d32;"></i> Mô tả chi tiết & Câu chuyện sản phẩm</label>
           <textarea name="description" class="form-control" rows="3" placeholder="Quy trình chăm sóc, nguồn nước giếng lắng lọc, giống hạt F1, không thuốc trừ sâu hóa học..."></textarea>
         </div>
 
         <div class="grid-2">
           <div class="form-group">
-            <label>Giá trị dinh dưỡng</label>
+            <label><i class="fa-solid fa-apple-whole" style="color: #2e7d32;"></i> Giá trị dinh dưỡng</label>
             <textarea name="nutrition_info" class="form-control" rows="2" placeholder="Chứa nhiều vitamin C, chất xơ, sắt, khoáng chất vi lượng..."></textarea>
           </div>
           <div class="form-group">
-            <label>Hướng dẫn bảo quản & Sử dụng</label>
+            <label><i class="fa-solid fa-box-archive" style="color: #2e7d32;"></i> Hướng dẫn bảo quản & Sử dụng</label>
             <textarea name="storage_guide" class="form-control" rows="2" placeholder="Rửa sạch trước khi chế biến, bảo quản trong túi giấy hoặc màng bọc thực phẩm nhiệt độ 4-8°C..."></textarea>
           </div>
         </div>
       </div>
 
       <!-- Footer Buttons -->
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--admin-border);">
-        <button type="button" class="btn-sm btn-outline-sm close-add-modal">
+      <div class="modal-footer-actions">
+        <button type="button" class="btn-modal-cancel close-add-modal">
           <i class="fa-solid fa-xmark"></i> Hủy bỏ
         </button>
-        <button type="submit" class="btn-sm btn-primary-sm" style="padding: 10px 24px; font-size: 0.95rem; font-weight: 700;">
+        <button type="submit" class="btn-modal-submit">
           <i class="fa-solid fa-floppy-disk"></i> Lưu nông sản mới
         </button>
       </div>
@@ -326,7 +370,14 @@
 <div id="edit-product-modal" class="modal-overlay">
   <div class="modal-content">
     <div class="modal-header">
-      <h3 class="modal-title"><i class="fa-regular fa-pen-to-square"></i> Cập Nhật Nông Sản & Hình Ảnh</h3>
+      <div>
+        <h3 class="modal-title">
+          <span class="modal-title-icon"><i class="fa-regular fa-pen-to-square"></i></span>
+          <span>Cập Nhật Thông Tin Nông Sản</span>
+          <span id="edit-badge-id" class="modal-badge-id">#ID</span>
+        </h3>
+        <div class="modal-subtitle">Chỉnh sửa thông tin giá bán, hình ảnh và hồ sơ nguồn gốc nông sản</div>
+      </div>
       <button type="button" class="modal-close close-edit-modal" title="Đóng">&times;</button>
     </div>
 
@@ -350,13 +401,13 @@
       <!-- TAB 1: THÔNG TIN & GIÁ -->
       <div id="edit-tab-basic" class="modal-tab-pane active">
         <div class="form-group">
-          <label>Tên nông sản / Sản phẩm <span style="color: red;">*</span></label>
-          <input type="text" id="edit-name" name="name" class="form-control" required>
+          <label>Tên nông sản / Sản phẩm <span class="required-star">*</span></label>
+          <input type="text" id="edit-name" name="name" class="form-control" required placeholder="Nhập tên nông sản sạch...">
         </div>
 
         <div class="grid-2">
           <div class="form-group">
-            <label>Danh mục sản phẩm <span style="color: red;">*</span></label>
+            <label>Danh mục sản phẩm <span class="required-star">*</span></label>
             <select id="edit-category" name="category_id" class="form-control" required>
               <% categories.forEach(cat => { %>
                 <option value="<%= cat.id %>"><%= cat.name %></option>
@@ -365,34 +416,63 @@
           </div>
           <div class="form-group">
             <label>Đơn vị tính</label>
-            <input type="text" id="edit-unit" name="unit" class="form-control">
+            <div class="input-with-affix">
+              <input type="text" id="edit-unit" name="unit" class="form-control" placeholder="kg, bó 500g, khay 1kg, hộp...">
+              <span class="input-affix">ĐVT</span>
+            </div>
           </div>
         </div>
 
         <div class="grid-3">
           <div class="form-group">
-            <label>Giá bán hiện tại (VNĐ) <span style="color: red;">*</span></label>
-            <input type="number" id="edit-price" name="price" class="form-control" required>
+            <label>Giá bán hiện tại <span class="required-star">*</span></label>
+            <div class="input-with-affix">
+              <input type="number" id="edit-price" name="price" class="form-control" required placeholder="0" min="0" step="1000">
+              <span class="input-affix">VNĐ</span>
+            </div>
+            <div id="edit-price-preview" class="price-preview-tag" style="display: none;">
+              <i class="fa-solid fa-tag"></i> <span>0 đ</span>
+            </div>
           </div>
           <div class="form-group">
             <label>Giá niêm yết (Gạch ngang)</label>
-            <input type="number" id="edit-original-price" name="original_price" class="form-control">
+            <div class="input-with-affix">
+              <input type="number" id="edit-original-price" name="original_price" class="form-control" placeholder="0" min="0" step="1000">
+              <span class="input-affix">VNĐ</span>
+            </div>
+            <div id="edit-orig-price-preview" class="price-preview-tag" style="display: none; background: #fff3e0; color: #e65100; border-color: #ffe0b2;">
+              <i class="fa-solid fa-tag"></i> <span>0 đ</span>
+            </div>
           </div>
           <div class="form-group">
             <label>Số lượng tồn kho</label>
-            <input type="number" id="edit-stock" name="stock" class="form-control">
+            <input type="number" id="edit-stock" name="stock" class="form-control" placeholder="0" min="0">
           </div>
         </div>
 
-        <div style="background: #f8faf8; border: 1px solid #e2ede3; border-radius: 10px; padding: 14px 18px; margin-top: 10px; display: flex; gap: 24px;">
-          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #1b5e20;">
-            <input type="checkbox" id="edit-featured" name="is_featured" value="1" style="width: 17px; height: 17px; accent-color: #2e7d32;">
-            <i class="fa-solid fa-fire" style="color: #e65100;"></i> Sản phẩm nổi bật / Bán chạy
-          </label>
-          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #1b5e20;">
-            <input type="checkbox" id="edit-new" name="is_new" value="1" style="width: 17px; height: 17px; accent-color: #2e7d32;">
-            <i class="fa-solid fa-sparkles" style="color: #2e7d32;"></i> Nông sản mới thu hoạch
-          </label>
+        <!-- Thẻ bật tắt nổi bật & nông sản mới dạng Switch Card -->
+        <div class="feature-toggle-grid">
+          <div class="feature-toggle-card featured-card" id="card-edit-featured">
+            <div class="feature-toggle-icon icon-featured">
+              <i class="fa-solid fa-fire"></i>
+            </div>
+            <div class="feature-toggle-info">
+              <span class="feature-toggle-title">Sản phẩm nổi bật / Bán chạy</span>
+              <span class="feature-toggle-desc">Ưu tiên hiển thị đầu trang chủ & mục đề xuất</span>
+            </div>
+            <input type="checkbox" id="edit-featured" name="is_featured" value="1">
+          </div>
+
+          <div class="feature-toggle-card" id="card-edit-new">
+            <div class="feature-toggle-icon icon-new">
+              <i class="fa-solid fa-sparkles"></i>
+            </div>
+            <div class="feature-toggle-info">
+              <span class="feature-toggle-title">Nông sản mới thu hoạch</span>
+              <span class="feature-toggle-desc">Gắn nhãn "Mới" xanh tươi thu hút khách</span>
+            </div>
+            <input type="checkbox" id="edit-new" name="is_new" value="1">
+          </div>
         </div>
       </div>
 
@@ -403,9 +483,9 @@
           <div class="image-preview-wrapper">
             <div class="image-preview-box">
               <img id="edit-preview-img" src="" alt="Hình ảnh sản phẩm">
-              <div class="preview-tag"><i class="fa-solid fa-camera"></i> Ảnh hiện tại</div>
+              <div class="preview-tag"><i class="fa-solid fa-camera"></i> Ảnh hiển thị hiện tại</div>
             </div>
-            <div style="font-size: 0.78rem; color: var(--admin-muted); margin-top: 8px;">
+            <div style="font-size: 0.8rem; color: var(--admin-muted); margin-top: 8px;">
               Xem trước tức thì khi chọn file hoặc đổi link
             </div>
           </div>
@@ -415,24 +495,24 @@
             <!-- Khu vực tải file ảnh mới -->
             <input type="file" id="edit-image-file" name="product_image_file" accept="image/*" style="display: none;">
             <div class="dropzone-card" id="edit-dropzone-trigger">
-              <div class="dropzone-icon"><i class="fa-solid fa-upload"></i></div>
+              <div class="dropzone-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
               <div class="dropzone-text" id="edit-file-status">Bấm để thay ảnh mới từ máy tính</div>
-              <div class="dropzone-subtext">Hỗ trợ JPG, PNG, WEBP (Tự động cập nhật vào hệ thống)</div>
+              <div class="dropzone-subtext">Hỗ trợ JPG, PNG, WEBP (Tự động tải & cập nhật)</div>
             </div>
 
             <!-- Đường dẫn ảnh hiện tại / nhập URL mới -->
-            <div class="form-group" style="margin-bottom: 14px;">
-              <label style="font-size: 0.85rem; font-weight: 600;">Đường dẫn hình ảnh (URL):</label>
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label>Đường dẫn hình ảnh (URL):</label>
               <div style="display: flex; gap: 8px;">
-                <input type="text" id="edit-image" name="image" class="form-control" placeholder="https://... hoặc đường dẫn ảnh">
-                <button type="button" class="btn-sm btn-outline-sm" id="btn-edit-preview-url" style="white-space: nowrap;">
+                <input type="text" id="edit-image" name="image" class="form-control" placeholder="https://... hoặc /uploads/products/...">
+                <button type="button" class="btn-sm btn-outline-sm" id="btn-edit-preview-url" style="white-space: nowrap; padding: 10px 16px;">
                   <i class="fa-solid fa-rotate"></i> Xem thử
                 </button>
               </div>
             </div>
 
             <!-- Gợi ý ảnh mẫu đẹp một chạm -->
-            <div class="preset-section-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Hoặc chọn nhanh ảnh mẫu có sẵn:</div>
+            <div class="preset-section-title"><i class="fa-solid fa-wand-magic-sparkles" style="color: #2e7d32;"></i> Hoặc chọn nhanh ảnh mẫu có sẵn:</div>
             <div class="preset-gallery" data-target-modal="edit">
               <div class="preset-thumb-item" data-url="https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&auto=format&fit=crop&q=80" title="Rau muống xanh">
                 <img src="https://images.unsplash.com/photo-1540420773420-3366772f4999?w=200&auto=format&fit=crop&q=80" alt="Rau muống">
@@ -473,25 +553,33 @@
 
       <!-- TAB 3: TIÊU CHUẨN & NGUỒN GỐC -->
       <div id="edit-tab-vietgap" class="modal-tab-pane">
-        <div class="grid-2">
-          <div class="form-group">
-            <label>Xuất xứ (Vùng trồng canh tác)</label>
-            <input type="text" id="edit-origin" name="origin" class="form-control">
-          </div>
-          <div class="form-group">
-            <label>Chứng nhận an toàn</label>
-            <input type="text" id="edit-certification" name="certification" class="form-control">
+        <div class="form-section-banner">
+          <i class="fa-solid fa-shield-halved"></i>
+          <div>
+            <div class="form-section-banner-title">Tiêu Chuẩn Nông Nghiệp & Nguồn Gốc Xuất Xứ</div>
+            <div class="form-section-banner-desc">Minh bạch thông tin vùng trồng và tiêu chuẩn chất lượng VietGAP/GlobalGAP</div>
           </div>
         </div>
 
         <div class="grid-2">
           <div class="form-group">
-            <label>Thời điểm / Chu kỳ thu hoạch</label>
-            <input type="text" id="edit-harvest-date" name="harvest_date" class="form-control">
+            <label><i class="fa-solid fa-location-dot" style="color: #2e7d32;"></i> Xuất xứ (Vùng trồng canh tác)</label>
+            <input type="text" id="edit-origin" name="origin" class="form-control" placeholder="Ví dụ: Bình Mỹ - Củ Chi - TP.HCM">
           </div>
           <div class="form-group">
-            <label>Hạn sử dụng khuyến nghị</label>
-            <input type="text" id="edit-shelf-life" name="shelf_life" class="form-control">
+            <label><i class="fa-solid fa-certificate" style="color: #2e7d32;"></i> Chứng nhận an toàn</label>
+            <input type="text" id="edit-certification" name="certification" class="form-control" placeholder="Ví dụ: VietGAP, GlobalGAP, Hữu cơ Organic...">
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label><i class="fa-solid fa-calendar-check" style="color: #2e7d32;"></i> Thời điểm / Chu kỳ thu hoạch</label>
+            <input type="text" id="edit-harvest-date" name="harvest_date" class="form-control" placeholder="Ví dụ: Thu hái sáng sớm mỗi ngày">
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-clock" style="color: #2e7d32;"></i> Hạn sử dụng khuyến nghị</label>
+            <input type="text" id="edit-shelf-life" name="shelf_life" class="form-control" placeholder="Ví dụ: 3 - 5 ngày (ngăn mát 4 - 8°C)">
           </div>
         </div>
       </div>
@@ -499,33 +587,33 @@
       <!-- TAB 4: MÔ TẢ & BẢO QUẢN -->
       <div id="edit-tab-desc" class="modal-tab-pane">
         <div class="form-group">
-          <label>Mô tả ngắn</label>
-          <textarea id="edit-short-desc" name="short_description" class="form-control" rows="2"></textarea>
+          <label><i class="fa-solid fa-align-left" style="color: #2e7d32;"></i> Mô tả ngắn (Hiển thị ở danh sách sản phẩm)</label>
+          <textarea id="edit-short-desc" name="short_description" class="form-control" rows="2" placeholder="Tóm tắt ngắn gọn 1-2 câu về vị, độ tươi và nguồn gốc..."></textarea>
         </div>
 
         <div class="form-group">
-          <label>Mô tả chi tiết & Câu chuyện sản phẩm</label>
-          <textarea id="edit-desc" name="description" class="form-control" rows="3"></textarea>
+          <label><i class="fa-solid fa-newspaper" style="color: #2e7d32;"></i> Mô tả chi tiết & Câu chuyện sản phẩm</label>
+          <textarea id="edit-desc" name="description" class="form-control" rows="3" placeholder="Giới thiệu quy trình trồng, giống cây, cảm nhận hương vị..."></textarea>
         </div>
 
         <div class="grid-2">
           <div class="form-group">
-            <label>Giá trị dinh dưỡng</label>
-            <textarea id="edit-nutrition" name="nutrition_info" class="form-control" rows="2"></textarea>
+            <label><i class="fa-solid fa-apple-whole" style="color: #2e7d32;"></i> Giá trị dinh dưỡng</label>
+            <textarea id="edit-nutrition" name="nutrition_info" class="form-control" rows="2" placeholder="Chứa vitamin C, chất xơ, khoáng chất vi lượng..."></textarea>
           </div>
           <div class="form-group">
-            <label>Hướng dẫn bảo quản</label>
-            <textarea id="edit-storage" name="storage_guide" class="form-control" rows="2"></textarea>
+            <label><i class="fa-solid fa-box-archive" style="color: #2e7d32;"></i> Hướng dẫn bảo quản</label>
+            <textarea id="edit-storage" name="storage_guide" class="form-control" rows="2" placeholder="Rửa sạch trước khi dùng, bọc kín bảo quản ngăn mát..."></textarea>
           </div>
         </div>
       </div>
 
       <!-- Footer Buttons -->
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--admin-border);">
-        <button type="button" class="btn-sm btn-outline-sm close-edit-modal">
-          <i class="fa-solid fa-xmark"></i> Đóng
+      <div class="modal-footer-actions">
+        <button type="button" class="btn-modal-cancel close-edit-modal">
+          <i class="fa-solid fa-xmark"></i> Hủy bỏ
         </button>
-        <button type="submit" class="btn-sm btn-primary-sm" style="padding: 10px 24px; font-size: 0.95rem; font-weight: 700;">
+        <button type="submit" class="btn-modal-submit">
           <i class="fa-solid fa-check"></i> Lưu cập nhật nông sản
         </button>
       </div>

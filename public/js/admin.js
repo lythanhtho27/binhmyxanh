@@ -42,6 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if (openAddBtn && addModal) {
     openAddBtn.addEventListener('click', () => {
       resetModalTabs(addModal);
+      updatePriceTag('add-price', 'add-price-preview');
+      updatePriceTag('add-original-price', 'add-orig-price-preview');
+      const addFeatured = document.getElementById('add-featured');
+      const addNew = document.getElementById('add-new');
+      if (addFeatured) syncToggleCard('card-add-featured', addFeatured);
+      if (addNew) syncToggleCard('card-add-new', addNew);
       addModal.style.display = 'flex';
     });
   }
@@ -80,6 +86,59 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
+  // HELPER: ĐỊNH DẠNG TIỀN TỆ VNĐ & THẺ CHỌN
+  // ==========================================
+  function formatVND(value) {
+    if (!value || isNaN(value)) return null;
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+  }
+
+  function updatePriceTag(inputId, previewId) {
+    const input = document.getElementById(inputId);
+    const tag = document.getElementById(previewId);
+    if (!input || !tag) return;
+    const val = Number(input.value);
+    if (val && val > 0) {
+      tag.style.display = 'inline-flex';
+      const span = tag.querySelector('span');
+      if (span) span.textContent = formatVND(val);
+    } else {
+      tag.style.display = 'none';
+    }
+  }
+
+  function syncToggleCard(cardId, checkbox) {
+    const card = document.getElementById(cardId);
+    if (!card || !checkbox) return;
+    card.classList.toggle('active', !!checkbox.checked);
+  }
+
+  // Tương tác chạm thẻ chọn nổi bật / mới
+  document.querySelectorAll('.feature-toggle-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      const checkbox = card.querySelector('input[type="checkbox"]');
+      if (!checkbox) return;
+      if (e.target !== checkbox) {
+        checkbox.checked = !checkbox.checked;
+      }
+      card.classList.toggle('active', checkbox.checked);
+    });
+  });
+
+  // Lắng nghe sự kiện gõ giá để preview live
+  [
+    { input: 'edit-price', preview: 'edit-price-preview' },
+    { input: 'edit-original-price', preview: 'edit-orig-price-preview' },
+    { input: 'add-price', preview: 'add-price-preview' },
+    { input: 'add-original-price', preview: 'add-orig-price-preview' }
+  ].forEach(item => {
+    const el = document.getElementById(item.input);
+    if (el) {
+      el.addEventListener('input', () => updatePriceTag(item.input, item.preview));
+    }
+  });
+
+  // ==========================================
   // 3. MODAL SỬA SẢN PHẨM & XỬ LÝ HÌNH ẢNH
   // ==========================================
   const editModal = document.getElementById('edit-product-modal');
@@ -101,8 +160,19 @@ document.addEventListener('DOMContentLoaded', () => {
       editForm.action = `/admin/products/edit/${product.id}`;
       document.getElementById('edit-name').value = product.name || '';
       document.getElementById('edit-category').value = product.category_id || '';
-      document.getElementById('edit-price').value = product.price || '';
-      document.getElementById('edit-original-price').value = product.original_price || '';
+      
+      // Xóa phần thập phân .00 thừa trong giá tiền VNĐ
+      const cleanPrice = product.price ? Math.round(Number(product.price)) : '';
+      const cleanOrigPrice = product.original_price ? Math.round(Number(product.original_price)) : '';
+      document.getElementById('edit-price').value = cleanPrice;
+      document.getElementById('edit-original-price').value = cleanOrigPrice;
+      updatePriceTag('edit-price', 'edit-price-preview');
+      updatePriceTag('edit-original-price', 'edit-orig-price-preview');
+
+      // Hiển thị mã ID trên header modal
+      const badgeId = document.getElementById('edit-badge-id');
+      if (badgeId) badgeId.textContent = `#${product.id}`;
+
       document.getElementById('edit-unit').value = product.unit || 'kg';
       document.getElementById('edit-stock').value = product.stock || '';
       document.getElementById('edit-origin').value = product.origin || '';
@@ -121,8 +191,18 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('edit-desc').value = product.description || '';
       document.getElementById('edit-nutrition').value = product.nutrition_info || '';
       document.getElementById('edit-storage').value = product.storage_guide || '';
-      document.getElementById('edit-featured').checked = !!product.is_featured;
-      document.getElementById('edit-new').checked = !!product.is_new;
+      
+      // Đồng bộ trạng thái thẻ toggle
+      const editFeatured = document.getElementById('edit-featured');
+      const editNew = document.getElementById('edit-new');
+      if (editFeatured) {
+        editFeatured.checked = !!product.is_featured;
+        syncToggleCard('card-edit-featured', editFeatured);
+      }
+      if (editNew) {
+        editNew.checked = !!product.is_new;
+        syncToggleCard('card-edit-new', editNew);
+      }
 
       resetModalTabs(editModal);
       editModal.style.display = 'flex';

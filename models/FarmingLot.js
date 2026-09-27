@@ -141,7 +141,7 @@ const FarmingLot = {
       area: area,
       zone_code: `VN-HCM-${String(product.id).padStart(3, '0')}`,
       facility_name: facility,
-      location: product.origin || 'Xã Bình Mỹ, Huyện Củ Chi, TP. Hồ Chí Minh',
+      location: product.origin || 'Bình Mỹ, Củ Chi',
       plant_variety: plantVariety,
       water_source: waterSource,
       technician_name: 'Kỹ sư nông học VietGAP - Ban Kỹ thuật Cơ sở',

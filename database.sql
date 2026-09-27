@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS `products` (
   `original_price` DECIMAL(12, 2) DEFAULT NULL,
   `unit` VARCHAR(50) DEFAULT 'kg',
   `stock` INT DEFAULT 100,
-  `origin` VARCHAR(150) DEFAULT 'Việt Nam',
+  `origin` VARCHAR(150) DEFAULT 'Bình Mỹ, Củ Chi',
   `harvest_date` VARCHAR(100) DEFAULT 'Hái mới trong ngày',
   `shelf_life` VARCHAR(100) DEFAULT '5-7 ngày bảo quản lạnh',
   `certification` VARCHAR(100) DEFAULT 'VietGAP',

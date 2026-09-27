@@ -56,7 +56,7 @@ class _VoiceLogScreenState extends State<VoiceLogScreen> with SingleTickerProvid
     super.initState();
     _selectedLot = widget.initialLot ?? (widget.lots.isNotEmpty ? widget.lots.first : FarmingLotModel(
       id: 1, lotCode: 'RM-VG-2026-0901', name: 'Rau muống VietGAP', area: '1000m2', zoneCode: 'VN-01',
-      facilityName: 'Bình Mỹ Xanh', location: 'Củ Chi', plantVariety: 'F1 Trang Nông',
+      facilityName: 'Bình Mỹ Xanh', location: 'Bình Mỹ, Củ Chi', plantVariety: 'F1 Trang Nông',
       waterSource: 'Nước lọc', technicianName: 'Kỹ sư', standard: 'VietGAP', status: 'in_progress',
       statusText: 'Đang canh tác', progressPercent: 50, totalLogs: 5, currentDay: 10,
     ));

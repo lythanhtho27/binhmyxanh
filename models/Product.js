@@ -141,7 +141,7 @@ const Product = {
       data.original_price || null,
       data.unit || 'kg',
       data.stock || 50,
-      data.origin || 'Việt Nam',
+      data.origin || 'Bình Mỹ, Củ Chi',
       data.harvest_date || 'Hái mới trong ngày',
       data.shelf_life || '5-7 ngày bảo quản mát',
       data.certification || 'VietGAP',

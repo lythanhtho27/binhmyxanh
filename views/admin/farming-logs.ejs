@@ -1,0 +1,610 @@
+<div class="admin-card">
+  <!-- Header: Chọn nông sản / Lô canh tác & Các nút thao tác -->
+  <div class="admin-card-header" style="flex-wrap: wrap; gap: 14px;">
+    <div>
+      <h2 class="admin-card-title">
+        <i class="fa-solid fa-clipboard-list" style="color: var(--admin-primary);"></i>
+        Quản Lý Nhật Ký Canh Tác VietGAP
+      </h2>
+      <div style="font-size: 0.85rem; color: var(--admin-muted); margin-top: 4px;">
+        Mỗi nông sản có hồ sơ nhật ký số và mã vùng trồng riêng biệt theo chuẩn truy xuất nguồn gốc.
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <% if (selectedLot) { %>
+        <% if (selectedLot.product_id) { %>
+          <a href="/products/<%= selectedLot.product_id %>" target="_blank" class="btn-sm btn-outline-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Xem trên Web bán hàng
+          </a>
+        <% } %>
+        <button id="btn-open-edit-lot" class="btn-sm btn-outline-sm" style="display: inline-flex; align-items: center; gap: 6px; color: #1b5e20; border-color: #a5d6a7;">
+          <i class="fa-solid fa-sliders"></i> Sửa thông tin Lô
+        </button>
+        <button id="btn-open-add-log" class="btn-sm btn-primary-sm" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px;">
+          <i class="fa-solid fa-plus-circle"></i> Thêm nhật ký mới
+        </button>
+      <% } %>
+    </div>
+  </div>
+
+  <% if (message) { %>
+    <div class="badge <%= message.type === 'success' ? 'badge-completed' : 'badge-cancelled' %>" style="display: block; padding: 10px 16px; margin-bottom: 20px; font-size: 0.9rem;">
+      <%= message.text %>
+    </div>
+  <% } %>
+
+  <!-- Thanh chọn nông sản / Lô canh tác -->
+  <div style="background: #f8faf8; border: 1px solid #dbe4dc; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+    <div style="font-weight: 700; color: #1b5e20; display: flex; align-items: center; gap: 8px;">
+      <i class="fa-solid fa-filter" style="color: var(--admin-primary);"></i> Chọn nông sản / Lô:
+    </div>
+
+    <div style="flex: 1; min-width: 280px;">
+      <select class="form-control" onchange="window.location.href='/admin/farming-logs?product_id=' + this.value" style="font-weight: 600; padding: 10px 14px;">
+        <% allProducts.forEach(prod => { %>
+          <% const hasLot = allLots.find(l => l.product_id === prod.id); %>
+          <option value="<%= prod.id %>" <%= selectedLot && selectedLot.product_id === prod.id ? 'selected' : '' %>>
+            <%= prod.name %> <%= hasLot ? `[Mã Lô: ${hasLot.lot_code}]` : '(Tạo mới nhật ký VietGAP)' %>
+          </option>
+        <% }) %>
+      </select>
+    </div>
+  </div>
+
+  <% if (selectedLot) { %>
+    <!-- Card Thông Tin Tổng Quan Lô Canh Tác -->
+    <div style="background: linear-gradient(135deg, #f1f8e9 0%, #ffffff 100%); border: 1.5px solid #c8e6c9; border-radius: 14px; padding: 22px; margin-bottom: 28px; box-shadow: 0 4px 14px rgba(46,125,50,0.06);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 16px;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;">
+            <span class="badge" style="background: #2e7d32; color: #fff; font-size: 0.85rem; padding: 4px 10px;">
+              <i class="fa-solid fa-barcode"></i> <%= selectedLot.lot_code %>
+            </span>
+            <span class="badge" style="background: #e8f5e9; color: #2e7d32; font-weight: 700; font-size: 0.82rem; border: 1px solid #a5d6a7;">
+              <i class="fa-solid fa-shield-halved"></i> <%= selectedLot.standard %>
+            </span>
+            <% if (selectedLot.status === 'harvested') { %>
+              <span class="badge badge-completed"><i class="fa-solid fa-check-double"></i> Đã thu hoạch</span>
+            <% } else if (selectedLot.status === 'quarantine') { %>
+              <span class="badge" style="background: #fff3e0; color: #e65100;"><i class="fa-solid fa-triangle-exclamation"></i> Thời kỳ cách ly</span>
+            <% } else { %>
+              <span class="badge badge-shipping"><i class="fa-solid fa-clock-rotate-left"></i> Đang canh tác</span>
+            <% } %>
+          </div>
+          <h3 style="font-size: 1.35rem; color: #1b5e20; font-weight: 800; margin: 0;">
+            <%= selectedLot.name %>
+          </h3>
+        </div>
+
+        <div style="display: flex; gap: 16px; text-align: center;">
+          <div style="background: white; border: 1px solid #dbe4dc; border-radius: 10px; padding: 10px 16px;">
+            <div style="font-size: 1.4rem; font-weight: 800; color: #2e7d32;"><%= logs.length %></div>
+            <div style="font-size: 0.78rem; color: var(--admin-muted);">Bản ghi nhật ký</div>
+          </div>
+          <div style="background: white; border: 1px solid #dbe4dc; border-radius: 10px; padding: 10px 16px;">
+            <div style="font-size: 1.4rem; font-weight: 800; color: #e65100;"><%= selectedLot.current_day || 26 %></div>
+            <div style="font-size: 0.78rem; color: var(--admin-muted);">Ngày canh tác</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lưới thông số cơ sở canh tác -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; font-size: 0.88rem; background: white; padding: 16px; border-radius: 10px; border: 1px solid #e0ede2;">
+        <div>
+          <span style="color: var(--admin-muted);"><i class="fa-solid fa-chart-area"></i> Diện tích:</span>
+          <strong><%= selectedLot.area %></strong>
+        </div>
+        <div>
+          <span style="color: var(--admin-muted);"><i class="fa-solid fa-map-location-dot"></i> Mã vùng:</span>
+          <strong style="color: #2e7d32;"><%= selectedLot.zone_code %></strong>
+        </div>
+        <div>
+          <span style="color: var(--admin-muted);"><i class="fa-solid fa-seedling"></i> Chủng loại giống:</span>
+          <strong><%= selectedLot.plant_variety %></strong>
+        </div>
+        <div>
+          <span style="color: var(--admin-muted);"><i class="fa-solid fa-droplet"></i> Nguồn nước:</span>
+          <strong><%= selectedLot.water_source %></strong>
+        </div>
+        <div>
+          <span style="color: var(--admin-muted);"><i class="fa-solid fa-user-check"></i> Kỹ thuật viên:</span>
+          <strong><%= selectedLot.technician_name %></strong>
+        </div>
+        <div>
+          <span style="color: var(--admin-muted);"><i class="fa-solid fa-calendar"></i> Bắt đầu / Thu hoạch:</span>
+          <strong><%= selectedLot.start_date ? new Date(selectedLot.start_date).toLocaleDateString('vi-VN') : '2026-09-01' %></strong> $\rightarrow$ 
+          <strong><%= selectedLot.expected_harvest_date ? new Date(selectedLot.expected_harvest_date).toLocaleDateString('vi-VN') : '2026-09-26' %></strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- DANH SÁCH NHẬT KÝ CANH TÁC 5 GIAI ĐOẠN -->
+    <div style="margin-bottom: 24px;">
+      <h3 style="font-size: 1.15rem; color: #1b5e20; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-timeline"></i> Tiến Trình Canh Tác 5 Giai Đoạn Chuẩn VietGAP
+      </h3>
+
+      <% farmingStages.forEach(stage => { %>
+        <div style="background: white; border: 1px solid #dbe4dc; border-radius: 12px; margin-bottom: 18px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+          <!-- Header giai đoạn -->
+          <div style="background: #f8faf8; padding: 14px 20px; border-bottom: 1px solid #e2ede3; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <div style="font-weight: 700; color: #1b5e20; font-size: 0.98rem; display: flex; align-items: center; gap: 10px;">
+              <i class="fa-solid <%= stage.icon || 'fa-seedling' %>" style="color: var(--admin-primary); font-size: 1.1rem;"></i>
+              <%= stage.name %>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span class="badge" style="background: #e8f5e9; color: #2e7d32; font-weight: 600;"><%= stage.timeRange %></span>
+              <span style="font-size: 0.8rem; color: var(--admin-muted);">(<%= stage.logs.length %> hoạt động)</span>
+            </div>
+          </div>
+
+          <!-- Bảng nhật ký trong giai đoạn -->
+          <div class="table-responsive">
+            <% if (stage.logs.length === 0) { %>
+              <div style="padding: 24px; text-align: center; color: var(--admin-muted); font-size: 0.9rem;">
+                Chưa có hoạt động nào được ghi nhận cho giai đoạn này.
+              </div>
+            <% } else { %>
+              <table class="admin-table" style="margin: 0;">
+                <thead>
+                  <tr style="background: transparent;">
+                    <th style="width: 100px;">Ngày</th>
+                    <th style="width: 110px;">Thời điểm</th>
+                    <th>Hoạt động canh tác</th>
+                    <th style="width: 220px;">Vật tư / Liều lượng</th>
+                    <th style="width: 180px;">Ghi chú & Đánh giá</th>
+                    <th style="width: 110px; text-align: right;">Hành động</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% stage.logs.forEach(log => { %>
+                    <tr>
+                      <td>
+                        <span class="day-pill" style="display: inline-block; background: #e8f5e9; color: #1b5e20; font-weight: 700; padding: 3px 8px; border-radius: 6px; font-size: 0.82rem;">
+                          Ngày <%= String(log.day_number).padStart(2, '0') %>
+                        </span>
+                        <div style="font-size: 0.72rem; color: var(--admin-muted); margin-top: 2px;">
+                          <%= log.log_date ? new Date(log.log_date).toLocaleDateString('vi-VN') : '' %>
+                        </div>
+                      </td>
+                      <td>
+                        <% if (log.session_of_day === 'morning') { %>
+                          <span style="font-size: 0.8rem; color: #e65100;"><i class="fa-solid fa-sun"></i> Buổi sáng</span>
+                        <% } else if (log.session_of_day === 'afternoon') { %>
+                          <span style="font-size: 0.8rem; color: #1565c0;"><i class="fa-solid fa-cloud-sun"></i> Buổi chiều</span>
+                        <% } else { %>
+                          <span style="font-size: 0.8rem; color: #2e7d32;"><i class="fa-solid fa-clock"></i> Cả ngày</span>
+                        <% } %>
+                      </td>
+                      <td>
+                        <strong style="font-size: 0.92rem; color: #1b5e20; display: block; margin-bottom: 4px;">
+                          <%= log.action_title %>
+                        </strong>
+                        <div style="font-size: 0.85rem; color: #334e38; line-height: 1.5;">
+                          <%= log.action_detail %>
+                        </div>
+                        <% if (log.is_quarantine_notice) { %>
+                          <div style="display: inline-block; margin-top: 6px; background: #fff3e0; color: #e65100; font-size: 0.78rem; font-weight: 700; padding: 2px 8px; border-radius: 4px;">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Thời kỳ cách ly bắt buộc trước thu hoạch
+                          </div>
+                        <% } %>
+                        <% if (log.is_harvest_test) { %>
+                          <div style="display: inline-block; margin-top: 6px; background: #e8f5e9; color: #2e7d32; font-size: 0.78rem; font-weight: 700; padding: 2px 8px; border-radius: 4px;">
+                            <i class="fa-solid fa-circle-check"></i> Đạt kiểm định xuất vườn VietGAP
+                          </div>
+                        <% } %>
+                      </td>
+                      <td>
+                        <% if (log.materials_used) { %>
+                          <div style="font-size: 0.82rem; font-weight: 600; color: #1b5e20;">
+                            <i class="fa-solid fa-flask"></i> <%= log.materials_used %>
+                          </div>
+                        <% } %>
+                        <% if (log.dosage) { %>
+                          <div style="font-size: 0.78rem; color: var(--admin-muted); margin-top: 2px;">
+                            Liều lượng: <%= log.dosage %>
+                          </div>
+                        <% } %>
+                        <% if (!log.materials_used && !log.dosage) { %>
+                          <span style="color: var(--admin-muted); font-size: 0.8rem;">—</span>
+                        <% } %>
+                      </td>
+                      <td>
+                        <% if (log.notes) { %>
+                          <div style="font-size: 0.82rem; color: var(--admin-muted); font-style: italic;">
+                            <%= log.notes %>
+                          </div>
+                        <% } else { %>
+                          <span style="color: var(--admin-muted); font-size: 0.8rem;">—</span>
+                        <% } %>
+                      </td>
+                      <td style="text-align: right;">
+                        <div style="display: inline-flex; gap: 4px;">
+                          <!-- Nút Sửa Nhật Ký -->
+                          <button type="button" class="btn-sm btn-outline-sm btn-open-edit-log" data-log-id="<%= log.id %>" title="Chỉnh sửa nhật ký này">
+                            <i class="fa-regular fa-pen-to-square"></i>
+                          </button>
+                          <!-- Nút Xóa Nhật Ký -->
+                          <form action="/admin/farming-logs/delete/<%= log.id %>" method="POST" style="display: inline; margin: 0;">
+                            <button type="submit" class="btn-sm btn-danger-sm btn-confirm-delete" title="Xóa nhật ký">
+                              <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                          </form>
+                        </div>
+                      </td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            <% } %>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <div style="text-align: center; padding: 40px; color: var(--admin-muted);">
+      Chưa chọn lô canh tác nào. Vui lòng chọn một sản phẩm ở menu phía trên.
+    </div>
+  <% } %>
+</div>
+
+<!-- ======================================================== -->
+<!-- MODAL 1: SỬA THÔNG TIN LÔ CANH TÁC (FARMING LOT) -->
+<!-- ======================================================== -->
+<% if (selectedLot) { %>
+<div id="edit-lot-modal" class="modal-overlay">
+  <div class="modal-content" style="max-width: 760px;">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="fa-solid fa-sliders"></i> Chỉnh Sửa Thông Tin Lô Canh Tác</h3>
+      <button type="button" class="modal-close close-lot-modal">&times;</button>
+    </div>
+
+    <form action="/admin/farming-lots/edit/<%= selectedLot.id %>" method="POST">
+      <div class="form-group">
+        <label>Tên hồ sơ Lô canh tác <span style="color: red;">*</span></label>
+        <input type="text" name="name" class="form-control" required value="<%= selectedLot.name %>">
+      </div>
+
+      <div class="grid-3">
+        <div class="form-group">
+          <label>Mã lô sản xuất <span style="color: red;">*</span></label>
+          <input type="text" name="lot_code" class="form-control" required value="<%= selectedLot.lot_code %>">
+        </div>
+        <div class="form-group">
+          <label>Mã số vùng trồng</label>
+          <input type="text" name="zone_code" class="form-control" value="<%= selectedLot.zone_code %>">
+        </div>
+        <div class="form-group">
+          <label>Trạng thái canh tác</label>
+          <select name="status" class="form-control">
+            <option value="in_progress" <%= selectedLot.status === 'in_progress' ? 'selected' : '' %>>Đang canh tác</option>
+            <option value="quarantine" <%= selectedLot.status === 'quarantine' ? 'selected' : '' %>>Thời kỳ cách ly</option>
+            <option value="harvested" <%= selectedLot.status === 'harvested' ? 'selected' : '' %>>Đã thu hoạch</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Cơ sở sản xuất</label>
+          <input type="text" name="facility_name" class="form-control" value="<%= selectedLot.facility_name %>">
+        </div>
+        <div class="form-group">
+          <label>Địa chỉ canh tác</label>
+          <input type="text" name="location" class="form-control" value="<%= selectedLot.location %>">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Diện tích lô</label>
+          <input type="text" name="area" class="form-control" value="<%= selectedLot.area %>">
+        </div>
+        <div class="form-group">
+          <label>Quy chuẩn áp dụng</label>
+          <input type="text" name="standard" class="form-control" value="<%= selectedLot.standard %>">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Chủng loại giống cây trồng & Nguồn giống</label>
+        <textarea name="plant_variety" class="form-control" rows="2"><%= selectedLot.plant_variety %></textarea>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Nguồn nước tưới</label>
+          <input type="text" name="water_source" class="form-control" value="<%= selectedLot.water_source %>">
+        </div>
+        <div class="form-group">
+          <label>Kỹ sư / Cán bộ phụ trách kỹ thuật</label>
+          <input type="text" name="technician_name" class="form-control" value="<%= selectedLot.technician_name %>">
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;">
+        <button type="button" class="btn-sm btn-outline-sm close-lot-modal">Hủy bỏ</button>
+        <button type="submit" class="btn-sm btn-primary-sm" style="padding: 10px 22px;">Lưu thông tin Lô</button>
+      </div>
+    </form>
+  </div>
+</div>
+<% } %>
+
+<!-- ======================================================== -->
+<!-- MODAL 2: THÊM NHẬT KÝ CANH TÁC MỚI -->
+<!-- ======================================================== -->
+<% if (selectedLot) { %>
+<div id="add-log-modal" class="modal-overlay">
+  <div class="modal-content" style="max-width: 700px;">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="fa-solid fa-plus-circle"></i> Thêm Nhật Ký Canh Tác Mới</h3>
+      <button type="button" class="modal-close close-add-log-modal">&times;</button>
+    </div>
+
+    <form action="/admin/farming-logs/add" method="POST">
+      <input type="hidden" name="lot_id" value="<%= selectedLot.id %>">
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Giai đoạn VietGAP <span style="color: red;">*</span></label>
+          <select name="stage_id" class="form-control" required>
+            <option value="1">Giai đoạn 1: Chuẩn bị đất & giá thể</option>
+            <option value="2">Giai đoạn 2: Xử lý giống & gieo trồng</option>
+            <option value="3" selected>Giai đoạn 3: Chăm sóc & cây con</option>
+            <option value="4">Giai đoạn 4: Thúc sinh trưởng & kiểm soát</option>
+            <option value="5">Giai đoạn 5: Thu hoạch & đóng gói</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Ngày thực hiện</label>
+          <input type="date" name="log_date" class="form-control" value="<%= new Date().toISOString().split('T')[0] %>">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Ngày thứ mấy trong chu kỳ <span style="color: red;">*</span></label>
+          <input type="number" name="day_number" class="form-control" required value="<%= (selectedLot.current_day || 1) + 1 %>" min="1">
+        </div>
+        <div class="form-group">
+          <label>Buổi trong ngày</label>
+          <select name="session_of_day" class="form-control">
+            <option value="morning">Buổi sáng</option>
+            <option value="afternoon">Buổi chiều</option>
+            <option value="all_day">Cả ngày</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Tiêu đề hoạt động / Công việc <span style="color: red;">*</span></label>
+        <input type="text" name="action_title" class="form-control" required placeholder="Ví dụ: Tưới thúc đạm cá vi sinh đợt 2, Phun xua đuổi tỏi ớt...">
+      </div>
+
+      <div class="form-group">
+        <label>Nội dung chi tiết hoạt động <span style="color: red;">*</span></label>
+        <textarea name="action_detail" class="form-control" rows="3" required placeholder="Mô tả cụ thể phương pháp thực hiện, tình trạng cây trồng, liều lượng pha loãng..."></textarea>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Phân bón / Vật tư sử dụng</label>
+          <input type="text" name="materials_used" class="form-control" placeholder="Ví dụ: Đạm cá ủ vi sinh, Dầu khoáng SK...">
+        </div>
+        <div class="form-group">
+          <label>Liều lượng / Tỉ lệ pha</label>
+          <input type="text" name="dosage" class="form-control" placeholder="Ví dụ: 1:300, 40ml / bình 16L...">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Ghi chú kỹ thuật</label>
+        <input type="text" name="notes" class="form-control" placeholder="Ví dụ: Đất ráo thoát nước tốt, cây phát triển đâm chồi mạnh...">
+      </div>
+
+      <div style="background: #f9fbf9; border: 1px solid #e0ede2; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; display: flex; gap: 20px;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.88rem; color: #e65100;">
+          <input type="checkbox" name="is_quarantine_notice" value="1">
+          <i class="fa-solid fa-triangle-exclamation"></i> Cảnh báo thời kỳ cách ly trước thu hoạch
+        </label>
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.88rem; color: #2e7d32;">
+          <input type="checkbox" name="is_harvest_test" value="1">
+          <i class="fa-solid fa-circle-check"></i> Đạt kiểm định an toàn xuất vườn
+        </label>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" class="btn-sm btn-outline-sm close-add-log-modal">Hủy bỏ</button>
+        <button type="submit" class="btn-sm btn-primary-sm" style="padding: 10px 22px;">Lưu nhật ký</button>
+      </div>
+    </form>
+  </div>
+</div>
+<% } %>
+
+<!-- ======================================================== -->
+<!-- MODAL 3: CHỈNH SỬA NHẬT KÝ CANH TÁC ĐÃ CÓ -->
+<!-- ======================================================== -->
+<% if (selectedLot) { %>
+<div id="edit-log-modal" class="modal-overlay">
+  <div class="modal-content" style="max-width: 700px;">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="fa-regular fa-pen-to-square"></i> Chỉnh Sửa Nhật Ký Canh Tác</h3>
+      <button type="button" class="modal-close close-edit-log-modal">&times;</button>
+    </div>
+
+    <form id="edit-log-form" method="POST">
+      <input type="hidden" name="lot_id" value="<%= selectedLot.id %>">
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Giai đoạn VietGAP <span style="color: red;">*</span></label>
+          <select id="edit-log-stage" name="stage_id" class="form-control" required>
+            <option value="1">Giai đoạn 1: Chuẩn bị đất & giá thể</option>
+            <option value="2">Giai đoạn 2: Xử lý giống & gieo trồng</option>
+            <option value="3">Giai đoạn 3: Chăm sóc & cây con</option>
+            <option value="4">Giai đoạn 4: Thúc sinh trưởng & kiểm soát</option>
+            <option value="5">Giai đoạn 5: Thu hoạch & đóng gói</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Ngày thực hiện</label>
+          <input type="date" id="edit-log-date" name="log_date" class="form-control">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Ngày thứ mấy trong chu kỳ <span style="color: red;">*</span></label>
+          <input type="number" id="edit-log-day" name="day_number" class="form-control" required min="1">
+        </div>
+        <div class="form-group">
+          <label>Buổi trong ngày</label>
+          <select id="edit-log-session" name="session_of_day" class="form-control">
+            <option value="morning">Buổi sáng</option>
+            <option value="afternoon">Buổi chiều</option>
+            <option value="all_day">Cả ngày</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Tiêu đề hoạt động <span style="color: red;">*</span></label>
+        <input type="text" id="edit-log-title" name="action_title" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label>Nội dung chi tiết hoạt động <span style="color: red;">*</span></label>
+        <textarea id="edit-log-detail" name="action_detail" class="form-control" rows="3" required></textarea>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Phân bón / Vật tư</label>
+          <input type="text" id="edit-log-materials" name="materials_used" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Liều lượng</label>
+          <input type="text" id="edit-log-dosage" name="dosage" class="form-control">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Ghi chú kỹ thuật</label>
+        <input type="text" id="edit-log-notes" name="notes" class="form-control">
+      </div>
+
+      <div style="background: #f9fbf9; border: 1px solid #e0ede2; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; display: flex; gap: 20px;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.88rem; color: #e65100;">
+          <input type="checkbox" id="edit-log-quarantine" name="is_quarantine_notice" value="1">
+          <i class="fa-solid fa-triangle-exclamation"></i> Thời kỳ cách ly trước thu hoạch
+        </label>
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.88rem; color: #2e7d32;">
+          <input type="checkbox" id="edit-log-harvest" name="is_harvest_test" value="1">
+          <i class="fa-solid fa-circle-check"></i> Đạt kiểm định xuất vườn
+        </label>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" class="btn-sm btn-outline-sm close-edit-log-modal">Hủy bỏ</button>
+        <button type="submit" class="btn-sm btn-primary-sm" style="padding: 10px 22px;">Lưu cập nhật</button>
+      </div>
+    </form>
+  </div>
+</div>
+<% } %>
+
+<!-- Script xử lý mở/đóng modal nhật ký canh tác -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Dữ liệu nhật ký chuẩn JSON của toàn bộ lô đang xem
+  const allFarmingLogs = <%- JSON.stringify(logs || []) %>;
+
+  // 1. Modal Sửa Lô
+  const editLotModal = document.getElementById('edit-lot-modal');
+  const openEditLotBtn = document.getElementById('btn-open-edit-lot');
+  const closeLotBtns = document.querySelectorAll('.close-lot-modal');
+
+  if (openEditLotBtn && editLotModal) {
+    openEditLotBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      editLotModal.style.display = 'flex';
+    });
+  }
+  closeLotBtns.forEach(btn => btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (editLotModal) editLotModal.style.display = 'none';
+  }));
+
+  // 2. Modal Thêm Nhật Ký
+  const addLogModal = document.getElementById('add-log-modal');
+  const openAddLogBtn = document.getElementById('btn-open-add-log');
+  const closeAddLogBtns = document.querySelectorAll('.close-add-log-modal');
+
+  if (openAddLogBtn && addLogModal) {
+    openAddLogBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      addLogModal.style.display = 'flex';
+    });
+  }
+  closeAddLogBtns.forEach(btn => btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (addLogModal) addLogModal.style.display = 'none';
+  }));
+
+  // 3. Modal Sửa Nhật Ký
+  const editLogModal = document.getElementById('edit-log-modal');
+  const closeEditLogBtns = document.querySelectorAll('.close-edit-log-modal');
+  const editLogForm = document.getElementById('edit-log-form');
+
+  document.querySelectorAll('.btn-open-edit-log').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const logId = btn.getAttribute('data-log-id');
+      const log = allFarmingLogs.find(item => String(item.id) === String(logId));
+      if (!log) return;
+
+      editLogForm.action = '/admin/farming-logs/edit/' + log.id;
+      if (document.getElementById('edit-log-stage')) document.getElementById('edit-log-stage').value = log.stage_id || 1;
+      if (document.getElementById('edit-log-day')) document.getElementById('edit-log-day').value = log.day_number || 1;
+      if (document.getElementById('edit-log-session')) document.getElementById('edit-log-session').value = log.session_of_day || 'morning';
+
+      let formattedDate = '';
+      if (log.log_date) {
+        try {
+          const d = new Date(log.log_date);
+          const yyyy = d.getFullYear();
+          const mm = String(d.getMonth() + 1).padStart(2, '0');
+          const dd = String(d.getDate()).padStart(2, '0');
+          formattedDate = `${yyyy}-${mm}-${dd}`;
+        } catch (err) {}
+      }
+      if (document.getElementById('edit-log-date')) document.getElementById('edit-log-date').value = formattedDate;
+
+      if (document.getElementById('edit-log-title')) document.getElementById('edit-log-title').value = log.action_title || '';
+      if (document.getElementById('edit-log-detail')) document.getElementById('edit-log-detail').value = log.action_detail || '';
+      if (document.getElementById('edit-log-materials')) document.getElementById('edit-log-materials').value = log.materials_used || '';
+      if (document.getElementById('edit-log-dosage')) document.getElementById('edit-log-dosage').value = log.dosage || '';
+      if (document.getElementById('edit-log-notes')) document.getElementById('edit-log-notes').value = log.notes || '';
+      if (document.getElementById('edit-log-quarantine')) document.getElementById('edit-log-quarantine').checked = !!(log.is_quarantine_notice);
+      if (document.getElementById('edit-log-harvest')) document.getElementById('edit-log-harvest').checked = !!(log.is_harvest_test);
+
+      if (editLogModal) editLogModal.style.display = 'flex';
+    });
+  });
+
+  closeEditLogBtns.forEach(btn => btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (editLogModal) editLogModal.style.display = 'none';
+  }));
+
+  // 4. Đóng modal khi bấm vào vùng xám bên ngoài
+  window.addEventListener('click', (e) => {
+    if (e.target === editLotModal) editLotModal.style.display = 'none';
+    if (e.target === addLogModal) addLogModal.style.display = 'none';
+    if (e.target === editLogModal) editLogModal.style.display = 'none';
+  });
+});
+</script>

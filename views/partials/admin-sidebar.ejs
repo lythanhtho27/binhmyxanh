@@ -23,6 +23,12 @@
         <span>Quản lý sản phẩm</span>
       </a>
     </li>
+    <li class="admin-nav-item <%= currentPath.startsWith('/admin/farming-logs') ? 'active' : '' %>">
+      <a href="/admin/farming-logs">
+        <i class="fa-solid fa-clipboard-list"></i>
+        <span>Nhật ký canh tác</span>
+      </a>
+    </li>
     <li class="admin-nav-item <%= currentPath.startsWith('/admin/orders') ? 'active' : '' %>">
       <a href="/admin/orders">
         <i class="fa-solid fa-receipt"></i>

@@ -67,13 +67,16 @@ const productController = {
       // Lấy các sản phẩm tương tự cùng danh mục
       const relatedProducts = await Product.getRelated(product.category_id, product.id, 4);
 
-      // Lấy nhật ký canh tác từ CSDL cho Lô chuẩn VietGAP
+      // Lấy nhật ký canh tác riêng biệt cho từng sản phẩm chuẩn VietGAP
       let farmingLot = null;
       let farmingStages = null;
       try {
         const FarmingLot = require('../models/FarmingLot');
         const FarmingLog = require('../models/FarmingLog');
-        farmingLot = await FarmingLot.getByCode('RM-VG-2026-0901');
+        farmingLot = await FarmingLot.getByProductId(product.id);
+        if (!farmingLot) {
+          farmingLot = await FarmingLot.getOrCreateForProduct(product);
+        }
         if (farmingLot) {
           farmingStages = await FarmingLog.getGroupedByStage(farmingLot.id);
         }

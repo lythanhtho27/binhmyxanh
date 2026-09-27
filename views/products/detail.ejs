@@ -160,21 +160,21 @@
         <div class="farming-log-banner">
           <div class="farming-log-badge-group">
             <span class="farming-badge farming-badge-primary">
-              <i class="fa-solid fa-certificate"></i> CHUẨN VIETGAP
+              <i class="fa-solid fa-certificate"></i> <%= farmingLot ? farmingLot.standard : 'CHUẨN VIETGAP' %>
             </span>
             <span class="farming-badge farming-badge-code">
-              <i class="fa-solid fa-barcode"></i> Mã lô: RM-VG-2026-0901
+              <i class="fa-solid fa-barcode"></i> Mã lô: <%= farmingLot ? farmingLot.lot_code : 'VG-2026' %>
             </span>
             <span class="farming-badge farming-badge-standard">
-              <i class="fa-solid fa-shield-halved"></i> Quy chuẩn: TCVN 11892-1:2017
+              <i class="fa-solid fa-shield-halved"></i> Trạng thái: <%= farmingLot && farmingLot.status === 'harvested' ? 'Đã thu hoạch' : (farmingLot && farmingLot.status === 'quarantine' ? 'Thời kỳ cách ly' : 'Đang canh tác') %>
             </span>
           </div>
           <h2 class="farming-log-title">
             <i class="fa-solid fa-book-open-reader" style="color: var(--primary); margin-right: 6px;"></i>
-            NHẬT KÝ CANH TÁC RAU MUỐNG (CHUẨN VIETGAP)
+            <%= farmingLot ? farmingLot.name : `NHẬT KÝ CANH TÁC ${product.name.toUpperCase()} (CHUẨN VIETGAP)` %>
           </h2>
           <div class="farming-log-subtitle">
-            Mã lô sản xuất: <strong>RM-VG-2026-0901</strong> &nbsp;|&nbsp; Quy chuẩn áp dụng: <strong>TCVN 11892-1:2017</strong>
+            Mã lô sản xuất: <strong><%= farmingLot ? farmingLot.lot_code : '' %></strong> &nbsp;|&nbsp; Quy chuẩn áp dụng: <strong><%= farmingLot ? farmingLot.standard : 'TCVN 11892-1:2017' %></strong>
           </div>
         </div>
 
@@ -197,7 +197,7 @@
                     <i class="fa-solid fa-building-wheat"></i> Cơ sở sản xuất
                   </td>
                   <td class="farming-value-cell">
-                    <strong>Hợp tác xã / Trang trại Nông sản Sạch Xanh</strong>
+                    <strong><%= farmingLot ? farmingLot.facility_name : 'Hợp tác xã Nông sản Sạch Xanh Bình Mỹ' %></strong>
                   </td>
                 </tr>
                 <tr>
@@ -205,7 +205,7 @@
                     <i class="fa-solid fa-location-dot"></i> Địa chỉ canh tác
                   </td>
                   <td class="farming-value-cell">
-                    Thôn/Ấp X, Xã Y, Huyện Z, Tỉnh/TP...
+                    <%= farmingLot ? farmingLot.location : (product.origin || 'Xã Bình Mỹ, Huyện Củ Chi, TP. Hồ Chí Minh') %>
                   </td>
                 </tr>
                 <tr>
@@ -213,7 +213,7 @@
                     <i class="fa-solid fa-map-location-dot"></i> Mã số vùng trồng
                   </td>
                   <td class="farming-value-cell">
-                    <span style="display: inline-block; background: #e8f5e9; color: var(--primary-hover); font-weight: 700; padding: 2px 8px; border-radius: 4px; font-family: monospace;">VN-XX-YY-ZZZ</span>
+                    <span style="display: inline-block; background: #e8f5e9; color: var(--primary-hover); font-weight: 700; padding: 2px 8px; border-radius: 4px; font-family: monospace;"><%= farmingLot ? farmingLot.zone_code : 'VN-HCM-001' %></span>
                   </td>
                 </tr>
                 <tr>
@@ -221,15 +221,15 @@
                     <i class="fa-solid fa-chart-area"></i> Diện tích lô canh tác
                   </td>
                   <td class="farming-value-cell">
-                    1.000 m² (Lô A2)
+                    <%= farmingLot ? farmingLot.area : '1.000 m² (Vùng chuyên canh)' %>
                   </td>
                 </tr>
                 <tr>
                   <td class="farming-label-cell">
-                    <i class="fa-solid fa-seedling"></i> Chủng loại cây trồng
+                    <i class="fa-solid fa-seedling"></i> Chủng loại giống cây trồng
                   </td>
                   <td class="farming-value-cell">
-                    <strong>Rau muống lá tre</strong> (Hạt giống F1 Trang Nông, tỉ lệ nảy mầm &gt;85%, có chứng nhận kiểm nghiệm kiểm dịch)
+                    <strong><%= product.name %></strong> (<%= farmingLot ? farmingLot.plant_variety : 'Hạt giống F1 thuần chủng đạt kiểm dịch thực vật' %>)
                   </td>
                 </tr>
                 <tr>
@@ -237,7 +237,7 @@
                     <i class="fa-solid fa-droplet"></i> Nguồn nước tưới
                   </td>
                   <td class="farming-value-cell">
-                    Nước giếng khoan đã qua hệ thống lắng lọc (Đạt chỉ tiêu vi sinh và kim loại nặng theo QCVN 01-1:2018/BYT)
+                    <%= farmingLot ? farmingLot.water_source : 'Nước giếng khoan qua hệ thống lắng lọc (Đạt chỉ tiêu theo QCVN 01-1:2018/BYT)' %>
                   </td>
                 </tr>
                 <tr>
@@ -245,7 +245,7 @@
                     <i class="fa-solid fa-user-check"></i> Người phụ trách kỹ thuật
                   </td>
                   <td class="farming-value-cell">
-                    Kỹ sư nông học / Cán bộ VietGAP cơ sở
+                    <%= farmingLot ? farmingLot.technician_name : 'Kỹ sư nông học / Cán bộ VietGAP cơ sở' %>
                   </td>
                 </tr>
               </tbody>
@@ -260,255 +260,93 @@
           </h3>
 
           <div class="farming-stages-list">
-            <!-- Giai đoạn 1 -->
-            <div class="farming-stage-card">
-              <div class="farming-stage-header">
-                <div class="farming-stage-name">
-                  <i class="fa-solid fa-tractor" style="color: var(--primary);"></i>
-                  Giai đoạn 1: Chuẩn bị đất & Xử lý giá thể
-                </div>
-                <span class="farming-stage-badge">Ngày 01 – Ngày 03</span>
-              </div>
-              <div class="farming-stage-body">
-                <div class="farming-day-item">
-                  <div class="farming-day-title">
-                    <span class="day-pill">Ngày 01</span>
-                    Khử trùng đất & Phơi ải
-                  </div>
-                  <ul class="farming-action-list">
-                    <li>Cày bừa, phơi ải đất nhằm diệt mầm bệnh và trứng sâu tồn dư.</li>
-                    <li>Rải vôi nông nghiệp (CaCO<sub>3</sub>) với liều lượng 35 kg/1.000 m² để khử trùng đất và cân bằng độ pH (duy trì pH từ 6.0 – 6.5).</li>
-                  </ul>
-                </div>
-
-                <div class="farming-day-item">
-                  <div class="farming-day-title">
-                    <span class="day-pill">Ngày 02</span>
-                    Bón lót & Phối trộn tầng canh tác
-                  </div>
-                  <ul class="farming-action-list">
-                    <li>
-                      Bón lót toàn bộ diện tích:
-                      <ul class="farming-action-sublist">
-                        <li>Phân chuồng ủ hoai mục bằng chế phẩm nấm đối kháng Trichoderma: 1.200 kg.</li>
-                        <li>Phân vi sinh hữu cơ Sông Gianh: 80 kg.</li>
-                        <li>Lân nung chảy Lâm Thao: 25 kg.</li>
-                      </ul>
-                    </li>
-                    <li>Bừa đều trộn sâu vào tầng đất canh tác mặt (sâu 15 – 20 cm).</li>
-                  </ul>
-                </div>
-
-                <div class="farming-day-item">
-                  <div class="farming-day-title">
-                    <span class="day-pill">Ngày 03</span>
-                    Lên luống & Tưới ẩm
-                  </div>
-                  <ul class="farming-action-list">
-                    <li>Lên luống: Chiều rộng mặt luống 1,2 m; rãnh thoát nước rộng 30 cm, sâu 20 cm; chiều dài luống 25 m.</li>
-                    <li>Làm phẳng bề mặt luống, tưới ẩm đất chuẩn bị gieo.</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <!-- Giai đoạn 2 -->
-            <div class="farming-stage-card">
-              <div class="farming-stage-header">
-                <div class="farming-stage-name">
-                  <i class="fa-solid fa-wheat-awn" style="color: var(--primary);"></i>
-                  Giai đoạn 2: Xử lý hạt & Gieo trồng
-                </div>
-                <span class="farming-stage-badge">Ngày 04</span>
-              </div>
-              <div class="farming-stage-body">
-                <div class="farming-day-item">
-                  <div class="farming-day-title">
-                    <span class="day-pill">Ngày 04</span>
-                    <span class="session-pill"><i class="fa-solid fa-sun"></i> Buổi sáng</span>
-                    Xử lý phá miên trạng hạt giống
-                  </div>
-                  <ul class="farming-action-list">
-                    <li>Xử lý hạt giống bằng phương pháp vật lý: Ngâm hạt trong nước ấm theo tỉ lệ 2 sôi : 3 lạnh (khoảng 45°C – 50°C) trong 4 giờ để phá vỡ miên trạng vỏ hạt.</li>
-                    <li>Vớt ra, ủ ấm trong vải ẩm 12 giờ cho đến khi hạt nứt nanh đều.</li>
-                  </ul>
-                </div>
-
-                <div class="farming-day-item">
-                  <div class="farming-day-title">
-                    <span class="day-pill">Ngày 04</span>
-                    <span class="session-pill"><i class="fa-solid fa-cloud-sun"></i> Buổi chiều</span>
-                    Gieo hạt & Che phủ giữ ẩm
-                  </div>
-                  <ul class="farming-action-list">
-                    <li>Tiến hành gieo hạt theo hàng: Khoảng cách giữa các hàng 15 cm, hạt cách hạt 2 – 3 cm. Lượng hạt sử dụng: 3,5 kg/1.000 m².</li>
-                    <li>Phủ một lớp rơm mục / trấu sạch mỏng (dày khoảng 0,5 cm) để giữ ẩm và tránh xói đất khi tưới.</li>
-                    <li>Tưới phun sương bằng hệ thống béc tưới tự động, duy trì độ ẩm đất 75 – 80%.</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <!-- Giai đoạn 3 -->
-            <div class="farming-stage-card">
-              <div class="farming-stage-header">
-                <div class="farming-stage-name">
-                  <i class="fa-solid fa-seedling" style="color: var(--primary);"></i>
-                  Giai đoạn 3: Chăm sóc & Cây con phát triển
-                </div>
-                <span class="farming-stage-badge">Ngày 05 – Ngày 15</span>
-              </div>
-              <div class="farming-stage-body">
-                <div class="farming-day-item">
-                  <div class="farming-day-title">
-                    <span class="day-pill">Ngày 07</span>
-                    Cây mầm 2 lá mầm nhú khỏi mặt đất
-                  </div>
-                  <ul class="farming-action-list">
-                    <li>Dỡ bỏ bớt lớp rơm/trấu dày để cây con đón ánh sáng quang hợp.</li>
-                    <li>Duy trì tưới nước 2 lần/ngày (sáng sớm trước 8:00 và chiều mát sau 16:30).</li>
-                  </ul>
-                </div>
-
-                <div class="farming-day-item">
-                  <div class="farming-day-title">
-                    <span class="day-pill">Ngày 10</span>
-                    Cây có 2 lá thật & Tưới thúc đợt 1
-                  </div>
-                  <ul class="farming-action-list">
-                    <li>Tỉa dặm những điểm quá dày, nhổ cỏ dại bằng tay dọc theo rãnh luống.</li>
-                    <li>Tưới thúc đợt 1: Dùng đạm cá ủ vi sinh (chế phẩm thủy phân hữu cơ) pha loãng theo tỉ lệ 1:300 tưới gốc nhằm kích thích rễ phát triển, thay thế phân đạm vô cơ hòa tan.</li>
-                  </ul>
-                </div>
-
-                <div class="farming-day-item">
-                  <div class="farming-day-title">
-                    <span class="day-pill">Ngày 14</span>
-                    Kiểm tra sâu bệnh IPM định kỳ
-                  </div>
-                  <ul class="farming-action-list">
-                    <li><strong>Ghi nhận:</strong> Xuất hiện bọ nhảy lác đác ở mép bờ luống (dưới ngưỡng gây hại).</li>
-                    <li><strong>Biện pháp xử lý sinh học:</strong> Phun dung dịch chiết xuất từ gừng, tỏi, ớt kết hợp dầu khoáng nông nghiệp SK Enspray 99 EC (liều lượng 40 ml/bình 16 lít nước) xua đuổi côn trùng hại lá non. Không sử dụng thuốc trừ sâu hóa học tổng hợp.</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <!-- Giai đoạn 4 -->
-            <div class="farming-stage-card">
-              <div class="farming-stage-header">
-                <div class="farming-stage-name">
-                  <i class="fa-solid fa-leaf" style="color: var(--primary);"></i>
-                  Giai đoạn 4: Thúc sinh trưởng & Kiểm soát an toàn
-                </div>
-                <span class="farming-stage-badge">Ngày 16 – Ngày 23</span>
-              </div>
-              <div class="farming-stage-body">
-                <div class="farming-day-item">
-                  <div class="farming-day-title">
-                    <span class="day-pill">Ngày 16</span>
-                    Bón thúc đợt 2 qua hệ thống tưới
-                  </div>
-                  <ul class="farming-action-list">
-                    <li>Bón thúc đợt 2: Hòa tan 15 kg phân NPK hữu cơ sinh học khoáng (5-5-5 + TE) vào hệ thống tưới nhỏ giọt / tưới tràn mặt luống rãnh nông, sau đó tưới lại bằng nước sạch để tránh cháy lá.</li>
-                  </ul>
-                </div>
-
-                <div class="farming-day-item">
-                  <div class="farming-day-title">
-                    <span class="day-pill">Ngày 18</span>
-                    Làm cỏ thủ công & Xới rãnh luống
-                  </div>
-                  <ul class="farming-action-list">
-                    <li>Làm cỏ thủ công đợt 2, xới nhẹ rãnh luống giúp đất tơi xốp, giữ rễ thông thoáng.</li>
-                  </ul>
-                </div>
-
-                <div class="farming-day-item">
-                  <div class="farming-day-title">
-                    <span class="day-pill">Ngày 20</span>
-                    Đánh giá sinh trưởng & Nguy cơ nấm bệnh
-                  </div>
-                  <ul class="farming-action-list">
-                    <li>Cây đạt chiều cao 15 – 18 cm, thân mập, lá xanh bóng tự nhiên, không có hiện tượng thân xốp ngậm nước do thừa đạm hóa học.</li>
-                    <li>Đánh giá nguy cơ nấm bệnh: Luống ráo, thoát nước tốt, không có dấu hiệu bệnh gỉ trắng hay lở cổ rễ.</li>
-                  </ul>
-                </div>
-
-                <div class="farming-day-item">
-                  <div class="farming-day-title">
-                    <span class="day-pill" style="background: #ffebee; color: var(--accent-red);">Ngày 21</span>
-                    Bắt đầu thời kỳ cách ly bắt buộc trước thu hoạch
-                  </div>
-                  <ul class="farming-action-list">
-                    <li>Ngừng tuyệt đối mọi hoạt động bón phân bón lá, phân hữu cơ hay chế phẩm sinh học xua đuổi côn trùng.</li>
-                    <li>Chỉ duy trì tưới nước sạch đã qua kiểm định để thanh lọc tồn dư muối khoáng trong mô thực vật và giữ ẩm nhẹ cho cây.</li>
-                  </ul>
-                  <div class="farming-notice-box">
-                    <i class="fa-solid fa-triangle-exclamation" style="color: var(--accent-warm); font-size: 1.1rem; margin-top: 2px;"></i>
-                    <div>
-                      <strong>Quy chuẩn kiểm soát nghiêm ngặt:</strong> Cách ly tuyệt đối tối thiểu 5 ngày trước thu hoạch nhằm phân giải hoàn toàn các chất dinh dưỡng tự nhiên và bảo đảm độ an toàn sinh học cao nhất cho người tiêu dùng.
+            <% if (farmingStages && farmingStages.length > 0) { %>
+              <% farmingStages.forEach(stage => { %>
+                <div class="farming-stage-card">
+                  <div class="farming-stage-header">
+                    <div class="farming-stage-name">
+                      <i class="fa-solid <%= stage.icon || 'fa-seedling' %>" style="color: var(--primary);"></i>
+                      <%= stage.name %>
                     </div>
+                    <span class="farming-stage-badge"><%= stage.timeRange || ('Giai đoạn ' + stage.id) %></span>
                   </div>
-                </div>
-              </div>
-            </div>
+                  <div class="farming-stage-body">
+                    <% if (!stage.logs || stage.logs.length === 0) { %>
+                      <div style="font-size: 0.88rem; color: var(--text-muted); font-style: italic; padding: 10px 0;">
+                        Chưa có hoạt động ghi nhận trong giai đoạn này.
+                      </div>
+                    <% } else { %>
+                      <% stage.logs.forEach(log => { %>
+                        <div class="farming-day-item">
+                          <div class="farming-day-title">
+                            <span class="day-pill">Ngày <%= String(log.day_number).padStart(2, '0') %></span>
+                            <%= log.action_title %>
+                            <% if (log.session_of_day === 'morning') { %>
+                              <span style="font-size: 0.75rem; background: #fff3e0; color: #e65100; padding: 2px 8px; border-radius: 4px; font-weight: normal; margin-left: 6px;">🌅 Buổi sáng</span>
+                            <% } else if (log.session_of_day === 'afternoon') { %>
+                              <span style="font-size: 0.75rem; background: #e3f2fd; color: #1565c0; padding: 2px 8px; border-radius: 4px; font-weight: normal; margin-left: 6px;">☀️ Buổi chiều</span>
+                            <% } %>
+                          </div>
 
-            <!-- Giai đoạn 5 -->
-            <div class="farming-stage-card">
-              <div class="farming-stage-header">
-                <div class="farming-stage-name">
-                  <i class="fa-solid fa-box-open" style="color: var(--primary);"></i>
-                  Giai đoạn 5: Thu hoạch & Đóng gói hoàn thiện
-                </div>
-                <span class="farming-stage-badge">Ngày 25 – Ngày 26</span>
-              </div>
-              <div class="farming-stage-body">
-                <div class="farming-day-item">
-                  <div class="farming-day-title">
-                    <span class="day-pill">Ngày 25</span>
-                    Tiền thu hoạch - Kiểm nghiệm chỉ tiêu an toàn
-                  </div>
-                  <ul class="farming-action-list">
-                    <li>Cán bộ kiểm nghiệm lấy mẫu ngẫu nhiên tại ruộng để test nhanh dư lượng Nitrat (NO<sub>3</sub><sup>-</sup>) và hóa chất bảo vệ thực vật.</li>
-                    <li><strong>Kết quả:</strong> Âm tính với nhóm thuốc lân hữu cơ/cúc tổng hợp; chỉ số NO<sub>3</sub><sup>-</sup> nằm trong ngưỡng cho phép theo QCVN 8-2:2011/BYT (&lt; 1.500 mg/kg). Cho phép thu hoạch.</li>
-                  </ul>
-                  <div class="farming-success-box">
-                    <i class="fa-solid fa-circle-check" style="color: var(--primary); font-size: 1.1rem; margin-top: 2px;"></i>
-                    <div>
-                      <strong>Đạt kiểm định xuất vườn:</strong> Chỉ số Nitrat an toàn, không tồn dư hóa chất bảo vệ thực vật. Đủ điều kiện thu hái và dán tem truy xuất nguồn gốc.
-                    </div>
-                  </div>
-                </div>
+                          <div class="farming-action-detail" style="font-size: 0.92rem; line-height: 1.6; color: #2e3d30; margin-bottom: 8px;">
+                            <%= log.action_detail %>
+                          </div>
 
-                <div class="farming-day-item">
-                  <div class="farming-day-title">
-                    <span class="day-pill">Ngày 26</span>
-                    Thu hoạch chính thức & Đóng gói bảo quản
+                          <% if (log.materials_used || log.dosage) { %>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+                              <% if (log.materials_used) { %>
+                                <span style="display: inline-flex; align-items: center; gap: 4px; background: #e8f5e9; color: #1b5e20; font-size: 0.82rem; padding: 3px 8px; border-radius: 6px;">
+                                  <i class="fa-solid fa-flask"></i> Vật tư: <strong><%= log.materials_used %></strong>
+                                </span>
+                              <% } %>
+                              <% if (log.dosage) { %>
+                                <span style="display: inline-flex; align-items: center; gap: 4px; background: #f1f8e9; color: #33691e; font-size: 0.82rem; padding: 3px 8px; border-radius: 6px;">
+                                  <i class="fa-solid fa-scale-balanced"></i> Liều lượng: <%= log.dosage %>
+                                </span>
+                              <% } %>
+                            </div>
+                          <% } %>
+
+                          <% if (log.is_quarantine_notice) { %>
+                            <div class="farming-warning-box">
+                              <i class="fa-solid fa-triangle-exclamation" style="color: var(--warning); font-size: 1.1rem; margin-top: 2px;"></i>
+                              <div>
+                                <strong>Thời kỳ cách ly bắt buộc trước thu hoạch:</strong> Ngừng tuyệt đối mọi loại phân bón và chế phẩm sinh học. Chỉ duy trì tưới nước sạch đã kiểm định.
+                              </div>
+                            </div>
+                          <% } %>
+
+                          <% if (log.is_harvest_test) { %>
+                            <div class="farming-success-box">
+                              <i class="fa-solid fa-circle-check" style="color: var(--primary); font-size: 1.1rem; margin-top: 2px;"></i>
+                              <div>
+                                <strong>Đạt kiểm định xuất vườn:</strong> Chỉ số Nitrate an toàn, âm tính với dư lượng thuốc BVTV. Đủ điều kiện thu hái và dán tem truy xuất nguồn gốc.
+                              </div>
+                            </div>
+                          <% } %>
+
+                          <% if (log.notes) { %>
+                            <div style="font-size: 0.82rem; color: #58795c; margin-top: 4px;">
+                              <i class="fa-regular fa-note-sticky"></i> <em>Ghi chú: <%= log.notes %></em>
+                            </div>
+                          <% } %>
+
+                          <% if (log.image_url) { %>
+                            <div style="margin-top: 8px;">
+                              <img src="<%= log.image_url %>" alt="Ảnh hiện trường" style="max-width: 200px; height: 130px; object-fit: cover; border-radius: 8px; border: 1px solid #c8e6c9;">
+                            </div>
+                          <% } %>
+                        </div>
+                      <% }) %>
+                    <% } %>
                   </div>
-                  <ul class="farming-action-list">
-                    <li><strong>Thời gian thu hái:</strong> Từ 5:00 đến 8:00 sáng khi trời còn mát, tránh để rau bị bốc hơi nước gây héo gãy.</li>
-                    <li><strong>Dụng cụ:</strong> Dùng dao/kéo inox chuyên dụng đã khử trùng bằng cồn y tế 70°. Cắt cách mặt đất 3 – 4 cm để đảm bảo gốc rau sạch không dính bùn đất.</li>
-                    <li>
-                      <strong>Phân loại & sơ chế:</strong>
-                      <ul class="farming-action-sublist">
-                        <li>Chuyển ngay vào nhà sơ chế có mái che, cách ly côn trùng.</li>
-                        <li>Nhặt bỏ lá chân vàng úa, rễ sót hoặc cọng dập nát.</li>
-                        <li>Rửa qua 2 lần nước sạch luân lưu trên bồn rửa inox đạt chuẩn an toàn thực phẩm, để ráo tự nhiên trên giá thông gió.</li>
-                      </ul>
-                    </li>
-                    <li>
-                      <strong>Đóng gói & Niêm phong:</strong>
-                      <ul class="farming-action-sublist">
-                        <li>Bó rau theo trọng lượng 500g hoặc 1kg bằng lạt nứa/dây tự hủy, bọc màng thở chuyên dụng cho rau củ quả.</li>
-                        <li>Dán tem truy xuất nguồn gốc QR Code tích hợp toàn bộ hồ sơ nhật ký lô sản xuất RM-VG-2026-0901.</li>
-                        <li>Bảo quản trong kho lạnh nhiệt độ 10°C – 12°C trước khi đưa lên xe lạnh phân phối đến điểm bán lẻ.</li>
-                      </ul>
-                    </li>
-                  </ul>
                 </div>
+              <% }) %>
+            <% } else { %>
+              <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                Chưa có dữ liệu nhật ký canh tác cho sản phẩm này.
               </div>
-            </div>
+            <% } %>
           </div>
         </div>
 

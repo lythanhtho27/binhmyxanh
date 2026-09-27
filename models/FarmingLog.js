@@ -61,45 +61,59 @@ const FarmingLog = {
         notes, is_quarantine_notice, is_harvest_test
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
-      data.lot_id,
-      data.user_id || null,
+      data.lot_id ?? null,
+      data.user_id ?? null,
       data.log_date || new Date().toISOString().split('T')[0],
-      data.day_number || 1,
-      data.stage_id || 1,
+      data.day_number ?? 1,
+      data.stage_id ?? 1,
       data.stage_name || 'Giai đoạn 1: Chuẩn bị đất & Xử lý giá thể',
-      data.session_of_day || 'all_day',
-      data.action_title,
-      data.action_detail,
-      data.materials_used || null,
-      data.dosage || null,
-      data.voice_raw_text || null,
-      data.image_url || null,
-      data.notes || null,
+      data.session_of_day || 'morning',
+      data.action_title ?? '',
+      data.action_detail ?? '',
+      data.materials_used ?? null,
+      data.dosage ?? null,
+      data.voice_raw_text ?? null,
+      data.image_url ?? null,
+      data.notes ?? null,
       data.is_quarantine_notice ? 1 : 0,
       data.is_harvest_test ? 1 : 0
     ]);
     return result.insertId;
   },
 
-  // Cập nhật nhật ký
+  // Cập nhật nhật ký canh tác (đầy đủ các trường)
   async update(id, data) {
     const pool = getPool();
     const [result] = await pool.query(`
       UPDATE farming_logs SET
-        action_title = COALESCE(?, action_title),
-        action_detail = COALESCE(?, action_detail),
-        materials_used = COALESCE(?, materials_used),
-        dosage = COALESCE(?, dosage),
-        notes = COALESCE(?, notes),
-        image_url = COALESCE(?, image_url)
+        log_date = IFNULL(?, log_date),
+        day_number = IFNULL(?, day_number),
+        stage_id = IFNULL(?, stage_id),
+        stage_name = IFNULL(?, stage_name),
+        session_of_day = IFNULL(?, session_of_day),
+        action_title = IFNULL(?, action_title),
+        action_detail = IFNULL(?, action_detail),
+        materials_used = ?,
+        dosage = ?,
+        notes = ?,
+        image_url = IFNULL(?, image_url),
+        is_quarantine_notice = IFNULL(?, is_quarantine_notice),
+        is_harvest_test = IFNULL(?, is_harvest_test)
       WHERE id = ?
     `, [
-      data.action_title,
-      data.action_detail,
-      data.materials_used,
-      data.dosage,
-      data.notes,
-      data.image_url,
+      data.log_date ?? null,
+      data.day_number ?? null,
+      data.stage_id ?? null,
+      data.stage_name ?? null,
+      data.session_of_day ?? null,
+      data.action_title ?? null,
+      data.action_detail ?? null,
+      data.materials_used !== undefined ? data.materials_used : null,
+      data.dosage !== undefined ? data.dosage : null,
+      data.notes !== undefined ? data.notes : null,
+      data.image_url !== undefined ? data.image_url : null,
+      data.is_quarantine_notice !== undefined ? (data.is_quarantine_notice ? 1 : 0) : null,
+      data.is_harvest_test !== undefined ? (data.is_harvest_test ? 1 : 0) : null,
       id
     ]);
     return result.affectedRows > 0;

@@ -53,4 +53,11 @@ router.get('/orders', adminController.orders);
 router.get('/orders/:id', adminController.orderDetail);
 router.post('/orders/:id/status', adminController.updateOrderStatus);
 
+// Quản lý nhật ký canh tác theo sản phẩm
+router.get('/farming-logs', adminController.farmingLogs);
+router.post('/farming-lots/edit/:id', adminController.updateFarmingLot);
+router.post('/farming-logs/add', adminController.createFarmingLog);
+router.post('/farming-logs/edit/:id', adminController.updateFarmingLog);
+router.post('/farming-logs/delete/:id', adminController.deleteFarmingLog);
+
 module.exports = router;

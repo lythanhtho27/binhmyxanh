@@ -2,6 +2,8 @@ const Product = require('../models/Product');
 const Category = require('../models/Category');
 const Order = require('../models/Order');
 const User = require('../models/User');
+const FarmingLot = require('../models/FarmingLot');
+const FarmingLog = require('../models/FarmingLog');
 
 const adminController = {
   // 1. Dashboard tổng quan
@@ -302,6 +304,176 @@ const adminController = {
     } catch (error) {
       console.error('Lỗi cập nhật trạng thái đơn hàng:', error);
       res.redirect('/admin/orders');
+    }
+  },
+
+  // 5. Quản lý Nhật ký canh tác theo sản phẩm
+  async farmingLogs(req, res) {
+    try {
+      const allProducts = await Product.getAll({ limit: 100 });
+      let allLots = await FarmingLot.getAll();
+
+      // Nếu truyền product_id mà sản phẩm chưa có lot, tự động tạo
+      let selectedLot = null;
+      if (req.query.product_id) {
+        const prodId = parseInt(req.query.product_id);
+        selectedLot = await FarmingLot.getByProductId(prodId);
+        if (!selectedLot) {
+          const prod = allProducts.find(p => p.id === prodId) || await Product.getById(prodId);
+          if (prod) {
+            selectedLot = await FarmingLot.getOrCreateForProduct(prod);
+            allLots = await FarmingLot.getAll();
+          }
+        }
+      } else if (req.query.lot_id) {
+        const lotId = parseInt(req.query.lot_id);
+        selectedLot = await FarmingLot.getById(lotId);
+      }
+
+      // Nếu chưa chọn lô nào, mặc định lấy lô đầu tiên hoặc tạo cho sản phẩm đầu tiên
+      if (!selectedLot && allLots.length > 0) {
+        selectedLot = allLots[0];
+      } else if (!selectedLot && allProducts.length > 0) {
+        selectedLot = await FarmingLot.getOrCreateForProduct(allProducts[0]);
+        allLots = await FarmingLot.getAll();
+      }
+
+      let farmingStages = [];
+      let logs = [];
+      if (selectedLot) {
+        farmingStages = await FarmingLog.getGroupedByStage(selectedLot.id);
+        logs = await FarmingLog.getByLotId(selectedLot.id);
+      }
+
+      const message = req.session.adminMessage || null;
+      delete req.session.adminMessage;
+
+      res.render('admin/farming-logs', {
+        title: 'Quản Lý Nhật Ký Canh Tác VietGAP - Admin',
+        allProducts,
+        allLots,
+        selectedLot,
+        farmingStages,
+        logs,
+        message,
+        layout: 'layouts/admin'
+      });
+    } catch (error) {
+      console.error('Lỗi tải trang quản lý nhật ký canh tác:', error);
+      res.status(500).send('Lỗi máy chủ Admin khi tải nhật ký');
+    }
+  },
+
+  async updateFarmingLot(req, res) {
+    try {
+      const id = parseInt(req.params.id);
+      await FarmingLot.update(id, req.body);
+      req.session.adminMessage = { type: 'success', text: 'Đã cập nhật thông tin lô canh tác thành công!' };
+      res.redirect(`/admin/farming-logs?lot_id=${id}`);
+    } catch (error) {
+      console.error('Lỗi cập nhật lô canh tác:', error);
+      req.session.adminMessage = { type: 'error', text: 'Lỗi cập nhật lô canh tác: ' + error.message };
+      res.redirect('/admin/farming-logs');
+    }
+  },
+
+  async createFarmingLog(req, res) {
+    try {
+      const {
+        lot_id, log_date, day_number, stage_id, session_of_day,
+        action_title, action_detail, materials_used, dosage, notes,
+        is_quarantine_notice, is_harvest_test
+      } = req.body;
+
+      const stageNames = {
+        '1': 'Giai đoạn 1: Chuẩn bị đất & Xử lý giá thể',
+        '2': 'Giai đoạn 2: Xử lý giống & Xuống giống gieo trồng',
+        '3': 'Giai đoạn 3: Chăm sóc & Cây con phát triển',
+        '4': 'Giai đoạn 4: Thúc sinh trưởng & Kiểm soát an toàn',
+        '5': 'Giai đoạn 5: Thu hoạch & Đóng gói hoàn thiện'
+      };
+
+      await FarmingLog.create({
+        lot_id: parseInt(lot_id),
+        log_date: log_date || new Date().toISOString().split('T')[0],
+        day_number: parseInt(day_number) || 1,
+        stage_id: parseInt(stage_id) || 1,
+        stage_name: stageNames[String(stage_id)] || 'Giai đoạn canh tác',
+        session_of_day: session_of_day || 'morning',
+        action_title: (action_title || '').trim(),
+        action_detail: (action_detail || '').trim(),
+        materials_used: materials_used ? materials_used.trim() : null,
+        dosage: dosage ? dosage.trim() : null,
+        notes: notes ? notes.trim() : null,
+        is_quarantine_notice: is_quarantine_notice === '1' || is_quarantine_notice === 'true' || is_quarantine_notice === 'on',
+        is_harvest_test: is_harvest_test === '1' || is_harvest_test === 'true' || is_harvest_test === 'on'
+      });
+
+      req.session.adminMessage = { type: 'success', text: 'Đã thêm nhật ký canh tác mới thành công!' };
+      res.redirect(lot_id ? `/admin/farming-logs?lot_id=${lot_id}` : '/admin/farming-logs');
+    } catch (error) {
+      console.error('Lỗi thêm nhật ký canh tác:', error);
+      req.session.adminMessage = { type: 'error', text: 'Lỗi thêm nhật ký: ' + error.message };
+      res.redirect(req.body && req.body.lot_id ? `/admin/farming-logs?lot_id=${req.body.lot_id}` : '/admin/farming-logs');
+    }
+  },
+
+  async updateFarmingLog(req, res) {
+    try {
+      const id = parseInt(req.params.id);
+      const existingLog = await FarmingLog.getById(id);
+      const {
+        lot_id, log_date, day_number, stage_id, session_of_day,
+        action_title, action_detail, materials_used, dosage, notes,
+        is_quarantine_notice, is_harvest_test
+      } = req.body;
+
+      const stageNames = {
+        '1': 'Giai đoạn 1: Chuẩn bị đất & Xử lý giá thể',
+        '2': 'Giai đoạn 2: Xử lý giống & Xuống giống gieo trồng',
+        '3': 'Giai đoạn 3: Chăm sóc & Cây con phát triển',
+        '4': 'Giai đoạn 4: Thúc sinh trưởng & Kiểm soát an toàn',
+        '5': 'Giai đoạn 5: Thu hoạch & Đóng gói hoàn thiện'
+      };
+
+      const finalLotId = lot_id || (existingLog ? existingLog.lot_id : null);
+
+      await FarmingLog.update(id, {
+        log_date: log_date || (existingLog ? existingLog.log_date : null),
+        day_number: parseInt(day_number) || (existingLog ? existingLog.day_number : 1),
+        stage_id: parseInt(stage_id) || (existingLog ? existingLog.stage_id : 1),
+        stage_name: stageNames[String(stage_id)] || (existingLog ? existingLog.stage_name : 'Giai đoạn canh tác'),
+        session_of_day: session_of_day || 'morning',
+        action_title: (action_title || '').trim(),
+        action_detail: (action_detail || '').trim(),
+        materials_used: materials_used ? materials_used.trim() : null,
+        dosage: dosage ? dosage.trim() : null,
+        notes: notes ? notes.trim() : null,
+        is_quarantine_notice: is_quarantine_notice === '1' || is_quarantine_notice === 'true' || is_quarantine_notice === 'on',
+        is_harvest_test: is_harvest_test === '1' || is_harvest_test === 'true' || is_harvest_test === 'on'
+      });
+
+      req.session.adminMessage = { type: 'success', text: 'Đã cập nhật nhật ký canh tác thành công!' };
+      res.redirect(finalLotId ? `/admin/farming-logs?lot_id=${finalLotId}` : '/admin/farming-logs');
+    } catch (error) {
+      console.error('Lỗi cập nhật nhật ký canh tác:', error);
+      req.session.adminMessage = { type: 'error', text: 'Lỗi cập nhật nhật ký: ' + error.message };
+      res.redirect('/admin/farming-logs');
+    }
+  },
+
+  async deleteFarmingLog(req, res) {
+    try {
+      const id = parseInt(req.params.id);
+      const log = await FarmingLog.getById(id);
+      const lotId = log ? log.lot_id : null;
+      await FarmingLog.delete(id);
+      req.session.adminMessage = { type: 'success', text: 'Đã xóa nhật ký canh tác!' };
+      res.redirect(lotId ? `/admin/farming-logs?lot_id=${lotId}` : '/admin/farming-logs');
+    } catch (error) {
+      console.error('Lỗi xóa nhật ký canh tác:', error);
+      req.session.adminMessage = { type: 'error', text: 'Lỗi xóa nhật ký!' };
+      res.redirect('/admin/farming-logs');
     }
   }
 };

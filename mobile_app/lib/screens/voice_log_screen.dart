@@ -88,7 +88,8 @@ class _VoiceLogScreenState extends State<VoiceLogScreen> with SingleTickerProvid
         _parsedData = null;
       });
 
-      await SpeechService.startListening(
+      final success = await SpeechService.startListening(
+        preferredLocale: 'vi_VN',
         onResult: (words, isFinal) {
           setState(() {
             _textController.text = words;
@@ -98,7 +99,30 @@ class _VoiceLogScreenState extends State<VoiceLogScreen> with SingleTickerProvid
             _parseVoiceText(words.trim());
           }
         },
+        onError: (error) {
+          setState(() => _isListening = false);
+          if (mounted) {
+            String message = 'Micro chưa nhận được âm thanh ($error).';
+            if (error.contains('error_speech_timeout')) {
+              message = 'Chưa nghe thấy giọng nói (quá thời gian chờ).\n👉 Hãy kiểm tra micro máy tính và bật "Host Audio Input" trên giả lập, hoặc bấm câu mẫu bên dưới!';
+            } else if (error.contains('error_no_match')) {
+              message = 'Không nhận dạng được từ nào. Vui lòng nói to và rõ hơn (hoặc kiểm tra cài đặt Tiếng Việt của máy).';
+            }
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('⚠️ $message'),
+                backgroundColor: Colors.amber.shade900,
+                duration: const Duration(seconds: 5),
+              ),
+            );
+          }
+        },
       );
+
+      if (!success) {
+        setState(() => _isListening = false);
+      }
     }
   }
 
@@ -237,6 +261,32 @@ class _VoiceLogScreenState extends State<VoiceLogScreen> with SingleTickerProvid
             Center(
               child: Column(
                 children: [
+                  // Badge trạng thái ngôn ngữ
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE8F5E9),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFA5D6A7)),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('🇻🇳', style: TextStyle(fontSize: 14)),
+                        SizedBox(width: 8),
+                        Text(
+                          'Ngôn ngữ nhận diện: Tiếng Việt (vi-VN)',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF2E7D32),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
                   AnimatedBuilder(
                     animation: _animController,
                     builder: (context, child) {
@@ -411,8 +461,8 @@ class _VoiceLogScreenState extends State<VoiceLogScreen> with SingleTickerProvid
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(color: Colors.orange),
                           ),
-                          child: Row(
-                            children: const [
+                          child: const Row(
+                            children: [
                               Icon(Icons.warning, color: Colors.orange, size: 18),
                               SizedBox(width: 6),
                               Expanded(
@@ -434,8 +484,8 @@ class _VoiceLogScreenState extends State<VoiceLogScreen> with SingleTickerProvid
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(color: Colors.green),
                           ),
-                          child: Row(
-                            children: const [
+                          child: const Row(
+                            children: [
                               Icon(Icons.check_circle, color: Colors.green, size: 18),
                               SizedBox(width: 6),
                               Expanded(

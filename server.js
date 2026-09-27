@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const session = require('express-session');
 const expressLayouts = require('express-ejs-layouts');
+const cors = require('cors');
 require('dotenv').config();
 
 const { initDB } = require('./config/db');
@@ -9,6 +10,13 @@ const { globalVariables } = require('./middleware/authMiddleware');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Bật CORS cho phép Web Flutter và Mobile App kết nối
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
+}));
 
 // Cấu hình View Engine (EJS & Layouts)
 app.set('view engine', 'ejs');
@@ -46,6 +54,8 @@ app.use('/products', require('./routes/products'));
 app.use('/cart', require('./routes/cart'));
 app.use('/auth', require('./routes/auth'));
 app.use('/admin', require('./routes/admin'));
+app.use('/api', require('./routes/api')); // API Backend phục vụ Mobile App Nhật Ký Giọng Nói
+
 
 // Xử lý trang 404
 app.use((req, res) => {

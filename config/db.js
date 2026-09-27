@@ -130,7 +130,65 @@ async function initDB() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
 
-    // 8. Chèn dữ liệu mẫu (Seed Data) nếu chưa có
+    // 8. Cập nhật role trong users để hỗ trợ vai trò nông dân (farmer)
+    try {
+      await pool.query(`
+        ALTER TABLE users MODIFY COLUMN role ENUM('admin', 'customer', 'farmer', 'technician') DEFAULT 'customer';
+      `);
+    } catch (e) {
+      // Bỏ qua nếu bảng đã cập nhật
+    }
+
+    // 9. Tạo bảng farming_lots (Lô nông sản / Vùng trồng VietGAP)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS farming_lots (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        lot_code VARCHAR(100) NOT NULL UNIQUE,
+        name VARCHAR(255) NOT NULL,
+        product_id INT DEFAULT NULL,
+        area VARCHAR(100) DEFAULT '1.000 m² (Lô A2)',
+        zone_code VARCHAR(100) DEFAULT 'VN-XX-YY-ZZZ',
+        facility_name VARCHAR(255) DEFAULT 'Hợp tác xã / Trang trại Nông sản Sạch Xanh',
+        location VARCHAR(255) DEFAULT 'Thôn/Ấp X, Xã Y, Huyện Z, Tỉnh/TP...',
+        plant_variety VARCHAR(255) DEFAULT 'Rau muống lá tre (Hạt giống F1 Trang Nông, tỉ lệ nảy mầm >85%, có chứng nhận kiểm nghiệm kiểm dịch)',
+        water_source VARCHAR(255) DEFAULT 'Nước giếng khoan đã qua hệ thống lắng lọc (Đạt chỉ tiêu vi sinh và kim loại nặng theo QCVN 01-1:2018/BYT)',
+        technician_name VARCHAR(150) DEFAULT 'Kỹ sư nông học / Cán bộ VietGAP cơ sở',
+        standard VARCHAR(100) DEFAULT 'TCVN 11892-1:2017',
+        start_date DATE DEFAULT NULL,
+        expected_harvest_date DATE DEFAULT NULL,
+        status ENUM('in_progress', 'quarantine', 'harvested', 'completed') DEFAULT 'in_progress',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
+    // 10. Tạo bảng farming_logs (Nhật ký canh tác giọng nói / điện tử)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS farming_logs (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        lot_id INT NOT NULL,
+        user_id INT DEFAULT NULL,
+        log_date DATE NOT NULL,
+        day_number INT DEFAULT 1,
+        stage_id INT DEFAULT 1,
+        stage_name VARCHAR(150) NOT NULL,
+        session_of_day ENUM('morning', 'afternoon', 'evening', 'all_day') DEFAULT 'all_day',
+        action_title VARCHAR(255) NOT NULL,
+        action_detail TEXT NOT NULL,
+        materials_used VARCHAR(255) DEFAULT NULL,
+        dosage VARCHAR(150) DEFAULT NULL,
+        voice_raw_text TEXT DEFAULT NULL,
+        image_url VARCHAR(500) DEFAULT NULL,
+        notes TEXT DEFAULT NULL,
+        is_quarantine_notice TINYINT(1) DEFAULT 0,
+        is_harvest_test TINYINT(1) DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (lot_id) REFERENCES farming_lots(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
+    // 11. Chèn dữ liệu mẫu (Seed Data) nếu chưa có
     await seedInitialData();
 
     console.log('✅ Cơ sở dữ liệu và các bảng đã được khởi tạo thành công!');
@@ -388,6 +446,56 @@ async function seedInitialData() {
       )
     `);
     console.log('🌱 Đã chèn 11 sản phẩm nông sản mẫu chất lượng cao.');
+  }
+
+  // Kiểm tra tài khoản Nông Dân phục vụ Mobile App Nhật Ký Giọng Nói
+  const [farmers] = await pool.query("SELECT * FROM users WHERE email = 'nongdan@binhmyxanh.vn' OR phone = '0987654321'");
+  if (farmers.length === 0) {
+    const farmerPass = await bcrypt.hash('123456', 10);
+    await pool.query(`
+      INSERT INTO users (full_name, email, password, phone, address, role, status) VALUES
+      ('Bác Ba (Nông dân VietGAP)', 'nongdan@binhmyxanh.vn', ?, '0987654321', 'Khu nông nghiệp công nghệ cao Bình Mỹ, Củ Chi', 'farmer', 'active')
+    `, [farmerPass]);
+    console.log('🌱 Đã tạo tài khoản Nông dân mẫu: nongdan@binhmyxanh.vn (SĐT: 0987654321, MK: 123456)');
+  }
+
+  // Kiểm tra bảng farming_lots
+  const [lots] = await pool.query('SELECT COUNT(*) as count FROM farming_lots');
+  if (lots[0].count === 0) {
+    const [prods] = await pool.query("SELECT id FROM products WHERE name LIKE '%Rau muống%' LIMIT 1");
+    const productId = prods.length > 0 ? prods[0].id : null;
+
+    const [lotResult] = await pool.query(`
+      INSERT INTO farming_lots (lot_code, name, product_id, area, zone_code, facility_name, location, plant_variety, water_source, technician_name, standard, start_date, expected_harvest_date, status)
+      VALUES
+      ('RM-VG-2026-0901', 'Nhật Ký Canh Tác Rau Muống (Chuẩn VietGAP)', ?, '1.000 m² (Lô A2)', 'VN-XX-YY-ZZZ', 'Hợp tác xã / Trang trại Nông sản Sạch Xanh', 'Thôn/Ấp X, Xã Y, Huyện Z, Tỉnh/TP...', 'Rau muống lá tre (Hạt giống F1 Trang Nông, tỉ lệ nảy mầm >85%, có chứng nhận kiểm nghiệm kiểm dịch)', 'Nước giếng khoan đã qua hệ thống lắng lọc (Đạt chỉ tiêu vi sinh và kim loại nặng theo QCVN 01-1:2018/BYT)', 'Kỹ sư nông học / Cán bộ VietGAP cơ sở', 'TCVN 11892-1:2017', '2026-09-01', '2026-09-26', 'harvested')
+    `, [productId]);
+
+    const lotId = lotResult.insertId;
+
+    await pool.query(`
+      INSERT INTO farming_logs (lot_id, log_date, day_number, stage_id, stage_name, session_of_day, action_title, action_detail, materials_used, dosage, voice_raw_text, notes, is_quarantine_notice, is_harvest_test)
+      VALUES
+      (?, '2026-09-01', 1, 1, 'Giai đoạn 1: Chuẩn bị đất & Xử lý giá thể', 'morning', 'Khử trùng đất & Phơi ải', 'Cày bừa, phơi ải đất nhằm diệt mầm bệnh và trứng sâu tồn dư. Rải vôi nông nghiệp (CaCO3) với liều lượng 35 kg/1.000 m² để khử trùng đất và cân bằng độ pH (duy trì pH từ 6.0 – 6.5).', 'Vôi nông nghiệp (CaCO3)', '35 kg/1.000 m²', 'Hôm nay ngày một cày bừa phơi ải đất rải vôi nông nghiệp ba mươi lăm ký cân bằng pH', 'Duy trì pH 6.0 - 6.5', 0, 0),
+      (?, '2026-09-02', 2, 1, 'Giai đoạn 1: Chuẩn bị đất & Xử lý giá thể', 'all_day', 'Bón lót & Phối trộn tầng canh tác', 'Bón lót toàn bộ diện tích: Phân chuồng ủ hoai mục bằng chế phẩm nấm đối kháng Trichoderma: 1.200 kg; Phân vi sinh hữu cơ Sông Gianh: 80 kg; Lân nung chảy Lâm Thao: 25 kg. Bừa đều trộn sâu vào tầng đất canh tác mặt (sâu 15 – 20 cm).', 'Phân chuồng Trichoderma, Phân hữu cơ Sông Gianh, Lân Lâm Thao', '1.200 kg phân chuồng + 80 kg Sông Gianh + 25 kg lân', 'Ngày hai bón lót phân chuồng ủ trichoderma một tấn hai, phân sông gianh tám mươi ký, lân hai mươi lăm ký', 'Trộn sâu tầng đất 15-20cm', 0, 0),
+      (?, '2026-09-03', 3, 1, 'Giai đoạn 1: Chuẩn bị đất & Xử lý giá thể', 'afternoon', 'Lên luống & Tưới ẩm', 'Lên luống: Chiều rộng mặt luống 1,2 m; rãnh thoát nước rộng 30 cm, sâu 20 cm; chiều dài luống 25 m. Làm phẳng bề mặt luống, tưới ẩm đất chuẩn bị gieo.', 'Nước sạch qua lắng lọc', 'Tưới đẫm luống', 'Ngày ba lên luống rộng một mét hai rãnh ba mươi phân làm phẳng mặt luống tưới nước ẩm', 'Chuẩn bị gieo hạt', 0, 0),
+      (?, '2026-09-04', 4, 2, 'Giai đoạn 2: Xử lý hạt & Gieo trồng', 'morning', 'Xử lý phá miên trạng hạt giống', 'Xử lý hạt giống bằng phương pháp vật lý: Ngâm hạt trong nước ấm theo tỉ lệ 2 sôi : 3 lạnh (khoảng 45°C – 50°C) trong 4 giờ để phá vỡ miên trạng vỏ hạt. Vớt ra, ủ ấm trong vải ẩm 12 giờ cho đến khi hạt nứt nanh đều.', 'Hạt giống F1 Trang Nông', '3,5 kg/1.000 m²', 'Sáng ngày bốn ngâm hạt hai sôi ba lạnh bốn tiếng rồi ủ ấm mười hai tiếng cho nứt nanh', 'Tỉ lệ nảy mầm >85%', 0, 0),
+      (?, '2026-09-04', 4, 2, 'Giai đoạn 2: Xử lý hạt & Gieo trồng', 'afternoon', 'Gieo hạt & Che phủ giữ ẩm', 'Tiến hành gieo hạt theo hàng: Khoảng cách giữa các hàng 15 cm, hạt cách hạt 2 – 3 cm. Lượng hạt sử dụng: 3,5 kg/1.000 m². Phủ một lớp rơm mục / trấu sạch mỏng (dày khoảng 0,5 cm) để giữ ẩm và tránh xói đất khi tưới. Tưới phun sương bằng hệ thống béc tưới tự động, duy trì độ ẩm đất 75 – 80%.', 'Hạt giống nứt nanh, rơm mục/trấu sạch', '3,5 kg hạt, phủ trấu 0.5cm', 'Chiều ngày bốn gieo hạt theo hàng khoảng cách mười lăm phân phủ trấu mỏng rồi tưới phun sương', 'Độ ẩm đất 75-80%', 0, 0),
+      (?, '2026-09-07', 7, 3, 'Giai đoạn 3: Chăm sóc & Cây con phát triển', 'morning', 'Cây mầm 2 lá mầm nhú khỏi mặt đất', 'Dỡ bỏ bớt lớp rơm/trấu dày để cây con đón ánh sáng quang hợp. Duy trì tưới nước 2 lần/ngày (sáng sớm trước 8:00 và chiều mát sau 16:30).', 'Nước giếng khoan lắng lọc', '2 lần/ngày', 'Ngày bảy mầm hai lá nhú lên dỡ bớt rơm trấu tưới nước sáng sớm với chiều mát', 'Cây bắt đầu quang hợp', 0, 0),
+      (?, '2026-09-10', 10, 3, 'Giai đoạn 3: Chăm sóc & Cây con phát triển', 'morning', 'Cây có 2 lá thật & Tưới thúc đợt 1', 'Tỉa dặm những điểm quá dày, nhổ cỏ dại bằng tay dọc theo rãnh luống. Tưới thúc đợt 1: Dùng đạm cá ủ vi sinh (chế phẩm thủy phân hữu cơ) pha loãng theo tỉ lệ 1:300 tưới gốc nhằm kích thích rễ phát triển, thay thế phân đạm vô cơ hòa tan.', 'Đạm cá ủ vi sinh thủy phân hữu cơ', 'Tỉ lệ pha 1:300', 'Ngày mười cây hai lá thật tỉa dặm nhổ cỏ tưới thúc đạm cá vi sinh tỉ lệ một trên ba trăm', 'Kích thích bộ rễ phát triển', 0, 0),
+      (?, '2026-09-14', 14, 3, 'Giai đoạn 3: Chăm sóc & Cây con phát triển', 'morning', 'Kiểm tra sâu bệnh IPM định kỳ', 'Ghi nhận: Xuất hiện bọ nhảy lác đác ở mép bờ luống (dưới ngưỡng gây hại). Biện pháp xử lý sinh học: Phun dung dịch chiết xuất từ gừng, tỏi, ớt kết hợp dầu khoáng nông nghiệp SK Enspray 99 EC (liều lượng 40 ml/bình 16 lít nước) xua đuổi côn trùng hại lá non. Không sử dụng thuốc trừ sâu hóa học tổng hợp.', 'Dung dịch thảo mộc gừng tỏi ớt, Dầu khoáng SK Enspray 99 EC', '40 ml / bình 16 lít nước', 'Ngày mười bốn kiểm tra sâu bệnh thấy có bọ nhảy mép bờ phun tỏi ớt gừng với dầu khoáng bốn mươi mi li', '100% thảo mộc sinh học', 0, 0),
+      (?, '2026-09-16', 16, 4, 'Giai đoạn 4: Thúc sinh trưởng & Kiểm soát an toàn', 'morning', 'Bón thúc đợt 2 qua hệ thống tưới', 'Bón thúc đợt 2: Hòa tan 15 kg phân NPK hữu cơ sinh học khoáng (5-5-5 + TE) vào hệ thống tưới nhỏ giọt / tưới tràn mặt luống rãnh nông, sau đó tưới lại bằng nước sạch để tránh cháy lá.', 'Phân NPK hữu cơ sinh học khoáng (5-5-5 + TE)', '15 kg/1.000 m²', 'Ngày mười sáu bón thúc đợt hai hòa tan mười lăm ký phân hữu cơ khoáng tưới rãnh luống', 'Tưới xả nước sạch tránh cháy lá', 0, 0),
+      (?, '2026-09-18', 18, 4, 'Giai đoạn 4: Thúc sinh trưởng & Kiểm soát an toàn', 'morning', 'Làm cỏ thủ công & Xới rãnh luống', 'Làm cỏ thủ công đợt 2, xới nhẹ rãnh luống giúp đất tơi xốp, giữ rễ thông thoáng.', 'Dụng cụ làm cỏ thủ công', 'Toàn bộ 1.000 m²', 'Ngày mười tám làm cỏ đợt hai xới nhẹ rãnh luống cho đất tơi xốp', 'Rễ thông thoáng', 0, 0),
+      (?, '2026-09-20', 20, 4, 'Giai đoạn 4: Thúc sinh trưởng & Kiểm soát an toàn', 'morning', 'Đánh giá sinh trưởng & Nguy cơ nấm bệnh', 'Cây đạt chiều cao 15 – 18 cm, thân mập, lá xanh bóng tự nhiên, không có hiện tượng thân xốp ngậm nước do thừa đạm hóa học. Đánh giá nguy cơ nấm bệnh: Luống ráo, thoát nước tốt, không có dấu hiệu bệnh gỉ trắng hay lở cổ rễ.', 'Kiểm tra thực địa', 'Chiều cao 15-18 cm', 'Ngày hai mươi rau cao mười lăm mười tám phân thân mập lá xanh tốt không có nấm bệnh', 'Chuẩn bị bước vào cách ly', 0, 0),
+      (?, '2026-09-21', 21, 4, 'Giai đoạn 4: Thúc sinh trưởng & Kiểm soát an toàn', 'morning', 'Bắt đầu thời kỳ cách ly bắt buộc trước thu hoạch', 'Ngừng tuyệt đối mọi hoạt động bón phân bón lá, phân hữu cơ hay chế phẩm sinh học xua đuổi côn trùng. Chỉ duy trì tưới nước sạch đã qua kiểm định để thanh lọc tồn dư muối khoáng trong mô thực vật và giữ ẩm nhẹ cho cây.', 'Nước sạch kiểm định', 'Tưới giữ ẩm nhẹ', 'Ngày hai mươi mốt bắt đầu thời kỳ cách ly ngừng tuyệt đối phân bón chế phẩm chỉ tưới nước sạch', 'Cách ly tối thiểu 5 ngày', 1, 0),
+      (?, '2026-09-25', 25, 5, 'Giai đoạn 5: Thu hoạch & Đóng gói hoàn thiện', 'morning', 'Tiền thu hoạch - Kiểm nghiệm chỉ tiêu an toàn', 'Cán bộ kiểm nghiệm lấy mẫu ngẫu nhiên tại ruộng để test nhanh dư lượng Nitrat (NO3-) và hóa chất bảo vệ thực vật. Kết quả: Âm tính với nhóm thuốc lân hữu cơ/cúc tổng hợp; chỉ số NO3- nằm trong ngưỡng cho phép theo QCVN 8-2:2011/BYT (< 1.500 mg/kg). Cho phép thu hoạch.', 'Bộ kit test nhanh Nitrat & BVTV', 'Lấy mẫu ngẫu nhiên 5 điểm', 'Ngày hai mươi lăm test nhanh nitrat và thuốc bảo vệ thực vật kết quả âm tính cho phép thu hoạch', 'Đạt chuẩn xuất vườn QCVN 8-2:2011/BYT', 0, 1),
+      (?, '2026-09-26', 26, 5, 'Giai đoạn 5: Thu hoạch & Đóng gói hoàn thiện', 'morning', 'Thu hoạch chính thức & Đóng gói bảo quản', 'Thời gian thu hái: Từ 5:00 đến 8:00 sáng khi trời còn mát, tránh để rau bị bốc hơi nước gây héo gãy. Dụng cụ: Dùng dao/kéo inox chuyên dụng đã khử trùng bằng cồn y tế 70°. Cắt cách mặt đất 3 – 4 cm để đảm bảo gốc rau sạch không dính bùn đất. Sơ chế 2 lần nước sạch luân lưu trên bồn inox an toàn thực phẩm. Đóng gói bó 500g/1kg màng thở, dán tem QR RM-VG-2026-0901, bảo quản kho lạnh 10°C - 12°C.', 'Dao inox cồn 70°, Màng thở rau củ, Tem QR RM-VG-2026-0901', 'Kho lạnh 10-12°C', 'Sáng sớm ngày hai mươi sáu thu hoạch cắt cách đất bốn phân sơ chế rửa sạch đóng gói dán tem qr', 'Hoàn tất quy trình VietGAP', 0, 0)
+    `, [
+      lotId, lotId, lotId, lotId, lotId, lotId, lotId,
+      lotId, lotId, lotId, lotId, lotId, lotId, lotId
+    ]);
+
+    console.log('🌱 Đã khởi tạo dữ liệu mẫu cho Lô RM-VG-2026-0901 và 14 nhật ký canh tác.');
   }
 }
 

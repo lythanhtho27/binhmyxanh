@@ -67,10 +67,26 @@ const productController = {
       // Lấy các sản phẩm tương tự cùng danh mục
       const relatedProducts = await Product.getRelated(product.category_id, product.id, 4);
 
+      // Lấy nhật ký canh tác từ CSDL cho Lô chuẩn VietGAP
+      let farmingLot = null;
+      let farmingStages = null;
+      try {
+        const FarmingLot = require('../models/FarmingLot');
+        const FarmingLog = require('../models/FarmingLog');
+        farmingLot = await FarmingLot.getByCode('RM-VG-2026-0901');
+        if (farmingLot) {
+          farmingStages = await FarmingLog.getGroupedByStage(farmingLot.id);
+        }
+      } catch (err) {
+        console.warn('Lưu ý: Không tải được farming lot từ CSDL:', err.message);
+      }
+
       res.render('products/detail', {
         title: `${product.name} - Bình Mỹ Xanh`,
         product,
         relatedProducts,
+        farmingLot,
+        farmingStages,
         layout: 'layouts/main'
       });
     } catch (error) {

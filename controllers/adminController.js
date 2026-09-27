@@ -64,6 +64,15 @@ const adminController = {
         description, nutrition_info, storage_guide, is_featured, is_new
       } = req.body;
 
+      // Ưu tiên ảnh upload từ máy tính, nếu không thì lấy link URL
+      let finalImage = image ? image.trim() : '';
+      if (req.file) {
+        finalImage = `/uploads/products/${req.file.filename}`;
+      }
+      if (!finalImage) {
+        finalImage = 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&auto=format&fit=crop&q=80';
+      }
+
       await Product.create({
         category_id: parseInt(category_id),
         name: name.trim(),
@@ -75,7 +84,7 @@ const adminController = {
         harvest_date: harvest_date || 'Hái mới trong ngày',
         shelf_life: shelf_life || '5-7 ngày',
         certification: certification || 'VietGAP',
-        image: image || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&auto=format&fit=crop&q=80',
+        image: finalImage,
         short_description: short_description || '',
         description: description || '',
         nutrition_info: nutrition_info || '',
@@ -84,7 +93,7 @@ const adminController = {
         is_new: is_new === '1' || is_new === 'true' || is_new === 'on'
       });
 
-      req.session.adminMessage = { type: 'success', text: 'Đã thêm sản phẩm mới thành công!' };
+      req.session.adminMessage = { type: 'success', text: 'Đã thêm sản phẩm mới và cập nhật hình ảnh thành công!' };
       res.redirect('/admin/products');
     } catch (error) {
       console.error('Lỗi thêm sản phẩm:', error);
@@ -102,6 +111,19 @@ const adminController = {
         description, nutrition_info, storage_guide, is_featured, is_new
       } = req.body;
 
+      // Nếu có upload file ảnh mới thì lấy file ảnh mới
+      let finalImage = image ? image.trim() : '';
+      if (req.file) {
+        finalImage = `/uploads/products/${req.file.filename}`;
+      }
+      // Nếu cả file lẫn ô URL đều trống, giữ lại ảnh cũ trong DB
+      if (!finalImage) {
+        const existing = await Product.getById(id);
+        if (existing) {
+          finalImage = existing.image;
+        }
+      }
+
       await Product.update(id, {
         category_id: parseInt(category_id),
         name: name.trim(),
@@ -113,7 +135,7 @@ const adminController = {
         harvest_date: harvest_date || 'Hái mới trong ngày',
         shelf_life: shelf_life || '5-7 ngày',
         certification: certification || 'VietGAP',
-        image: image,
+        image: finalImage,
         short_description: short_description || '',
         description: description || '',
         nutrition_info: nutrition_info || '',
@@ -122,11 +144,11 @@ const adminController = {
         is_new: is_new === '1' || is_new === 'true' || is_new === 'on'
       });
 
-      req.session.adminMessage = { type: 'success', text: 'Cập nhật sản phẩm thành công!' };
+      req.session.adminMessage = { type: 'success', text: 'Cập nhật thông tin và hình ảnh sản phẩm thành công!' };
       res.redirect('/admin/products');
     } catch (error) {
       console.error('Lỗi cập nhật sản phẩm:', error);
-      req.session.adminMessage = { type: 'error', text: 'Lỗi cập nhật sản phẩm!' };
+      req.session.adminMessage = { type: 'error', text: 'Lỗi cập nhật sản phẩm: ' + error.message };
       res.redirect('/admin/products');
     }
   },

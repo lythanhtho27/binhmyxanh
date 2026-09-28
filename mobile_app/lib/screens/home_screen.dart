@@ -232,10 +232,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: const Icon(Icons.mic, color: Colors.white, size: 30),
                               ),
                               const SizedBox(width: 16),
-                              Expanded(
+                              const Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: const [
+                                  children: [
                                     Text(
                                       'GHI NHẬT KÝ BẰNG GIỌNG NÓI',
                                       style: TextStyle(
@@ -354,9 +354,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     ),
                                                   ),
                                                   const SizedBox(width: 6),
-                                                  Text(
-                                                    lot.area,
-                                                    style: const TextStyle(fontSize: 11, color: Colors.black54),
+                                                  Expanded(
+                                                    child: Text(
+                                                      lot.area,
+                                                      style: const TextStyle(fontSize: 11, color: Colors.black54),
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
                                                   ),
                                                 ],
                                               ),
@@ -386,6 +390,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Text(
                                       '📜 Quy chuẩn: ${lot.standard} | Vùng: ${lot.zoneCode}',
                                       style: const TextStyle(fontSize: 11.5, color: Colors.black54),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                     const SizedBox(height: 12),
                                     // Progress Bar
@@ -423,32 +429,45 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     const SizedBox(height: 12),
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
-                                        OutlinedButton.icon(
-                                          icon: const Icon(Icons.mic, size: 16),
-                                          label: const Text('Nói ghi nhật ký'),
-                                          style: OutlinedButton.styleFrom(
-                                            foregroundColor: const Color(0xFFF57C00),
-                                            side: const BorderSide(color: Color(0xFFF57C00)),
-                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                        Expanded(
+                                          child: OutlinedButton.icon(
+                                            icon: const Icon(Icons.mic, size: 15),
+                                            label: const Text(
+                                              'Nói ghi nhật ký',
+                                              style: TextStyle(fontSize: 12),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            style: OutlinedButton.styleFrom(
+                                              foregroundColor: const Color(0xFFF57C00),
+                                              side: const BorderSide(color: Color(0xFFF57C00)),
+                                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                                            ),
+                                            onPressed: () => _openVoiceRecording(selectedLot: lot),
                                           ),
-                                          onPressed: () => _openVoiceRecording(selectedLot: lot),
                                         ),
                                         const SizedBox(width: 8),
-                                        ElevatedButton.icon(
-                                          icon: const Icon(Icons.menu_book, size: 16),
-                                          label: const Text('Xem nhật ký'),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: const Color(0xFF2E7D32),
-                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                        Expanded(
+                                          child: ElevatedButton.icon(
+                                            icon: const Icon(Icons.menu_book, size: 15),
+                                            label: const Text(
+                                              'Xem nhật ký',
+                                              style: TextStyle(fontSize: 12),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: const Color(0xFF2E7D32),
+                                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                                            ),
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(builder: (_) => LotDetailScreen(lotId: lot.id)),
+                                              );
+                                            },
                                           ),
-                                          onPressed: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(builder: (_) => LotDetailScreen(lotId: lot.id)),
-                                            );
-                                          },
                                         ),
                                       ],
                                     ),
